@@ -17,26 +17,20 @@ package org.apache.ibatis.builder.xml;
 
 import org.apache.ibatis.builder.BaseBuilder;
 import org.apache.ibatis.builder.BuilderException;
-import org.apache.ibatis.datasource.DataSourceFactory;
 import org.apache.ibatis.executor.ErrorContext;
-import org.apache.ibatis.executor.loader.ProxyFactory;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.io.VFS;
 import org.apache.ibatis.logging.Log;
-import org.apache.ibatis.mapping.DatabaseIdProvider;
 import org.apache.ibatis.parsing.XNode;
 import org.apache.ibatis.parsing.XPathParser;
 import org.apache.ibatis.plugin.Interceptor;
 import org.apache.ibatis.reflection.DefaultReflectorFactory;
 import org.apache.ibatis.reflection.MetaClass;
 import org.apache.ibatis.reflection.ReflectorFactory;
-import org.apache.ibatis.reflection.factory.ObjectFactory;
 import org.apache.ibatis.reflection.wrapper.ObjectWrapperFactory;
-import org.apache.ibatis.session.*;
-import org.apache.ibatis.transaction.TransactionFactory;
+import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.type.JdbcType;
 
-import javax.sql.DataSource;
 import java.io.InputStream;
 import java.io.Reader;
 import java.util.Properties;
@@ -49,27 +43,11 @@ public class XMLConfigBuilder extends BaseBuilder {
 
     private boolean parsed;
     private final XPathParser parser;
-    private String environment;
     private final ReflectorFactory localReflectorFactory = new DefaultReflectorFactory();
 
-    public XMLConfigBuilder(Reader reader) {
-        this(reader, null, null);
-    }
-
-    public XMLConfigBuilder(Reader reader, String environment) {
-        this(reader, environment, null);
-    }
 
     public XMLConfigBuilder(Reader reader, String environment, Properties props) {
         this(new XPathParser(reader, true, props, new XMLMapperEntityResolver()), environment, props);
-    }
-
-    public XMLConfigBuilder(InputStream inputStream) {
-        this(inputStream, null, null);
-    }
-
-    public XMLConfigBuilder(InputStream inputStream, String environment) {
-        this(inputStream, environment, null);
     }
 
     public XMLConfigBuilder(InputStream inputStream, String environment, Properties props) {
@@ -81,7 +59,6 @@ public class XMLConfigBuilder extends BaseBuilder {
         ErrorContext.instance().resource("SQL Mapper Configuration");
         this.configuration.setVariables(props);
         this.parsed = false;
-        this.environment = environment;
         this.parser = parser;
     }
 
@@ -97,19 +74,14 @@ public class XMLConfigBuilder extends BaseBuilder {
     private void parseConfiguration(XNode root) {
         try {
             //issue #117 read properties first
-            propertiesElement(root.evalNode("properties"));
             Properties settings = settingsAsProperties(root.evalNode("settings"));
             loadCustomVfs(settings);
             loadCustomLogImpl(settings);
             typeAliasesElement(root.evalNode("typeAliases"));
             pluginElement(root.evalNode("plugins"));
-            objectFactoryElement(root.evalNode("objectFactory"));
             objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
             reflectorFactoryElement(root.evalNode("reflectorFactory"));
-            settingsElement(settings);
             // read it after objectFactory and objectWrapperFactory issue #631
-            environmentsElement(root.evalNode("environments"));
-            databaseIdProviderElement(root.evalNode("databaseIdProvider"));
             typeHandlerElement(root.evalNode("typeHandlers"));
             mapperElement(root.evalNode("mappers"));
         } catch (Exception e) {
@@ -187,15 +159,6 @@ public class XMLConfigBuilder extends BaseBuilder {
         }
     }
 
-    private void objectFactoryElement(XNode context) throws Exception {
-        if (context != null) {
-            String type = context.getStringAttribute("type");
-            Properties properties = context.getChildrenAsProperties();
-            ObjectFactory factory = (ObjectFactory) resolveClass(type).newInstance();
-            factory.setProperties(properties);
-            configuration.setObjectFactory(factory);
-        }
-    }
 
     private void objectWrapperFactoryElement(XNode context) throws Exception {
         if (context != null) {
@@ -213,116 +176,6 @@ public class XMLConfigBuilder extends BaseBuilder {
         }
     }
 
-    private void propertiesElement(XNode context) throws Exception {
-        if (context != null) {
-            Properties defaults = context.getChildrenAsProperties();
-            String resource = context.getStringAttribute("resource");
-            String url = context.getStringAttribute("url");
-            if (resource != null && url != null) {
-                throw new BuilderException("The properties element cannot specify both a URL and a resource based property file reference.  Please specify one or the other.");
-            }
-            if (resource != null) {
-                defaults.putAll(Resources.getResourceAsProperties(resource));
-            } else if (url != null) {
-                defaults.putAll(Resources.getUrlAsProperties(url));
-            }
-            Properties vars = configuration.getVariables();
-            if (vars != null) {
-                defaults.putAll(vars);
-            }
-            parser.setVariables(defaults);
-            configuration.setVariables(defaults);
-        }
-    }
-
-    private void settingsElement(Properties props) {
-        configuration.setAutoMappingBehavior(AutoMappingBehavior.valueOf(props.getProperty("autoMappingBehavior", "PARTIAL")));
-        configuration.setAutoMappingUnknownColumnBehavior(AutoMappingUnknownColumnBehavior.valueOf(props.getProperty("autoMappingUnknownColumnBehavior", "NONE")));
-        configuration.setCacheEnabled(booleanValueOf(props.getProperty("cacheEnabled"), true));
-        configuration.setProxyFactory((ProxyFactory) createInstance(props.getProperty("proxyFactory")));
-        configuration.setLazyLoadingEnabled(booleanValueOf(props.getProperty("lazyLoadingEnabled"), false));
-        configuration.setAggressiveLazyLoading(booleanValueOf(props.getProperty("aggressiveLazyLoading"), false));
-        configuration.setMultipleResultSetsEnabled(booleanValueOf(props.getProperty("multipleResultSetsEnabled"), true));
-        configuration.setUseColumnLabel(booleanValueOf(props.getProperty("useColumnLabel"), true));
-        configuration.setUseGeneratedKeys(booleanValueOf(props.getProperty("useGeneratedKeys"), false));
-        configuration.setDefaultExecutorType(ExecutorType.valueOf(props.getProperty("defaultExecutorType", "SIMPLE")));
-        configuration.setDefaultStatementTimeout(integerValueOf(props.getProperty("defaultStatementTimeout"), null));
-        configuration.setDefaultFetchSize(integerValueOf(props.getProperty("defaultFetchSize"), null));
-        configuration.setMapUnderscoreToCamelCase(booleanValueOf(props.getProperty("mapUnderscoreToCamelCase"), false));
-        configuration.setSafeRowBoundsEnabled(booleanValueOf(props.getProperty("safeRowBoundsEnabled"), false));
-        configuration.setLocalCacheScope(LocalCacheScope.valueOf(props.getProperty("localCacheScope", "SESSION")));
-        configuration.setJdbcTypeForNull(JdbcType.valueOf(props.getProperty("jdbcTypeForNull", "OTHER")));
-        configuration.setLazyLoadTriggerMethods(stringSetValueOf(props.getProperty("lazyLoadTriggerMethods"), "equals,clone,hashCode,toString"));
-        configuration.setSafeResultHandlerEnabled(booleanValueOf(props.getProperty("safeResultHandlerEnabled"), true));
-        configuration.setDefaultScriptingLanguage(resolveClass(props.getProperty("defaultScriptingLanguage")));
-        configuration.setDefaultEnumTypeHandler(resolveClass(props.getProperty("defaultEnumTypeHandler")));
-        configuration.setCallSettersOnNulls(booleanValueOf(props.getProperty("callSettersOnNulls"), false));
-        configuration.setUseActualParamName(booleanValueOf(props.getProperty("useActualParamName"), true));
-        configuration.setReturnInstanceForEmptyRow(booleanValueOf(props.getProperty("returnInstanceForEmptyRow"), false));
-        configuration.setLogPrefix(props.getProperty("logPrefix"));
-        configuration.setConfigurationFactory(resolveClass(props.getProperty("configurationFactory")));
-    }
-
-    private void environmentsElement(XNode context) throws Exception {
-        if (context != null) {
-            if (environment == null) {
-                environment = context.getStringAttribute("default");
-            }
-            for (XNode child : context.getChildren()) {
-                String id = child.getStringAttribute("id");
-                if (isSpecifiedEnvironment(id)) {
-                    TransactionFactory txFactory = transactionManagerElement(child.evalNode("transactionManager"));
-                    DataSourceFactory dsFactory = dataSourceElement(child.evalNode("dataSource"));
-                    DataSource dataSource = dsFactory.getDataSource();
-//          Environment.Builder environmentBuilder = new Environment.Builder(id)
-//              .transactionFactory(txFactory)
-//              .dataSource(dataSource);
-//          configuration.setEnvironment(environmentBuilder.build());
-                }
-            }
-        }
-    }
-
-    private void databaseIdProviderElement(XNode context) throws Exception {
-        DatabaseIdProvider databaseIdProvider = null;
-        if (context != null) {
-            String type = context.getStringAttribute("type");
-            // awful patch to keep backward compatibility
-            if ("VENDOR".equals(type)) {
-                type = "DB_VENDOR";
-            }
-            Properties properties = context.getChildrenAsProperties();
-            databaseIdProvider = (DatabaseIdProvider) resolveClass(type).newInstance();
-            databaseIdProvider.setProperties(properties);
-        }
-        //todo
-        if (databaseIdProvider != null) {
-            String databaseId = databaseIdProvider.getDatabaseId(null);
-            configuration.setDatabaseId(databaseId);
-        }
-    }
-
-    private TransactionFactory transactionManagerElement(XNode context) throws Exception {
-        if (context != null) {
-            String type = context.getStringAttribute("type");
-            Properties props = context.getChildrenAsProperties();
-            TransactionFactory factory = (TransactionFactory) resolveClass(type).newInstance();
-            factory.setProperties(props);
-            return factory;
-        }
-        throw new BuilderException("Environment declaration requires a TransactionFactory.");
-    }
-
-    private DataSourceFactory dataSourceElement(XNode context) throws Exception {
-        if (context != null) {
-            String type = context.getStringAttribute("type");
-            Properties props = context.getChildrenAsProperties();
-            DataSourceFactory factory = (DataSourceFactory) resolveClass(type).newInstance();
-            factory.setProperties(props);
-            return factory;
-        }
-        throw new BuilderException("Environment declaration requires a DataSourceFactory.");
-    }
 
     private void typeHandlerElement(XNode parent) {
         if (parent != null) {
@@ -381,16 +234,4 @@ public class XMLConfigBuilder extends BaseBuilder {
             }
         }
     }
-
-    private boolean isSpecifiedEnvironment(String id) {
-        if (environment == null) {
-            throw new BuilderException("No environment specified.");
-        } else if (id == null) {
-            throw new BuilderException("Environment requires an id attribute.");
-        } else if (environment.equals(id)) {
-            return true;
-        }
-        return false;
-    }
-
 }

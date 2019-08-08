@@ -123,7 +123,7 @@ public class Configuration {
     protected final MapperRegistry mapperRegistry = new MapperRegistry(this);
     protected final InterceptorChain interceptorChain = new InterceptorChain();
     protected final TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry();
-    protected final TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
+    protected TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
     protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
 
     protected final Map<String, MappedStatement> mappedStatements = new StrictMap<MappedStatement>("Mapped Statements collection")
@@ -149,11 +149,6 @@ public class Configuration {
      * namespace which the actual cache is bound to.
      */
     protected final Map<String, String> cacheRefMap = new HashMap<>();
-
-    public Configuration(Environment environment) {
-        this();
-        this.environment = environment;
-    }
 
     public Configuration() {
         typeAliasRegistry.registerAlias("PERPETUAL", PerpetualCache.class);
@@ -454,6 +449,10 @@ public class Configuration {
 
     public TypeAliasRegistry getTypeAliasRegistry() {
         return typeAliasRegistry;
+    }
+
+    public void setTypeAliasRegistry(TypeAliasRegistry typeAliasRegistry) {
+        this.typeAliasRegistry = typeAliasRegistry;
     }
 
     /**

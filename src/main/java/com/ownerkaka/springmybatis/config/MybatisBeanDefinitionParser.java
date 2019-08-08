@@ -1,7 +1,9 @@
 package com.ownerkaka.springmybatis.config;
 
 import org.apache.ibatis.builder.BuilderException;
+import org.apache.ibatis.reflection.factory.ObjectFactory;
 import org.apache.ibatis.session.Configuration;
+import org.apache.ibatis.type.TypeAliasRegistry;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -45,7 +47,7 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
     private static final String NAME = "name";
     private static final String VALUE = "value";
     private static final String PACKAGE = "package";
-    private static final String TYPE = "type";
+    private static final String TYPE_ATTRIBUTE = "type";
     private static final String ALIAS = "alias";
     private static final String URL_ATTRIBUTE = "url";
     private static final String RESOURCE_ATTRIBUTE = "resource";
@@ -66,7 +68,9 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
             } else if (TYPE_ALIASES.equals(localName)) {
                 parseTypeAliases(elt, parserContext, builder);
             } else if (TYPE_HANDLERS.equals(localName)) {
+                parseTypeHandlerElement(elt, parserContext, builder);
             } else if (OBJECT_FACTORY.equals(localName)) {
+                parseObjectFactory(elt, parserContext, builder);
             } else if (OBJECT_WRAPPER_FACTORY.equals(localName)) {
             } else if (REFLECTOR_FACTORY.equals(localName)) {
             } else if (PLUGINS.equals(localName)) {
@@ -78,6 +82,25 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
         AbstractBeanDefinition beanDefinition = builder.getBeanDefinition();
         parserContext.getRegistry().registerBeanDefinition("mybatisConfig", beanDefinition);
         return beanDefinition;
+    }
+
+    private void parseObjectFactory(Element elt, ParserContext parserContext, BeanDefinitionBuilder builder) {
+        String type = elt.getAttribute(TYPE_ATTRIBUTE);
+        Class<?> aClass = null;
+        try {
+            aClass = ClassUtils.forName(type, this.getClass().getClassLoader());
+        } catch (ClassNotFoundException e) {
+            parserContext.getReaderContext().error("ObjectFactory加载失败", elt, e);
+        }
+        ObjectFactory objectFactory = null;
+        try {
+            objectFactory = (ObjectFactory) aClass.newInstance();
+        } catch (InstantiationException e) {
+            parserContext.getReaderContext().error("ObjectFactory加载失败", elt, e);
+        } catch (IllegalAccessException e) {
+            parserContext.getReaderContext().error("ObjectFactory加载失败", elt, e);
+        }
+        builder.addPropertyValue("objectFactory", objectFactory);
     }
 
     private PropertiesPersister propertiesPersister = new DefaultPropertiesPersister();
@@ -133,6 +156,7 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
     private void parseTypeAliases(Element elt, ParserContext parserContext, BeanDefinitionBuilder builder) {
         List<Element> childElts = DomUtils.getChildElements(elt);
 
+        TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
         for (Element childElt : childElts) {
             String localName = parserContext.getDelegate().getLocalName(childElt);
             if (PACKAGE.equals(localName)) {
@@ -140,12 +164,13 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
                 // TODO typeAliasPackage
             } else {
                 String alias = childElt.getAttribute(ALIAS);
-                String type = childElt.getAttribute(TYPE);
+                String type = childElt.getAttribute(TYPE_ATTRIBUTE);
                 try {
                     Class<?> clazz = ClassUtils.forName(type, this.getClass().getClassLoader());
+                    typeAliasRegistry.registerAlias(alias, clazz);
+
                     GenericBeanDefinition genericBeanDefinition = new GenericBeanDefinition();
                     genericBeanDefinition.setBeanClass(clazz);
-
                     if (!StringUtils.hasText(alias)) {
                         alias = clazz.getSimpleName();
                     }
@@ -155,12 +180,13 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
                 }
             }
         }
+        builder.addPropertyValue("typeAliasRegistry", typeAliasRegistry);
     }
 
-    private void parseTypeHandlerElement(Element elt, ParserContext parserContext, Configuration configuration) {
+    private void parseTypeHandlerElement(Element elt, ParserContext parserContext, BeanDefinitionBuilder builder) {
         List<Element> childElts = DomUtils.getChildElements(elt);
 
-        TypeHandlerRegistry typeHandlerRegistry = configuration.getTypeHandlerRegistry();
+        TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry();
         for (Element childElt : childElts) {
             if (childElt.hasAttribute(PACKAGE)) {
                 String typeHandlerPackage = childElt.getAttribute(NAME);
@@ -169,8 +195,15 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
                 String javaTypeName = childElt.getAttribute("javaType");
                 String jdbcTypeName = childElt.getAttribute("jdbcType");
                 String handlerTypeName = childElt.getAttribute("handler");
+                try {
+                    Class<?> clazz = ClassUtils.forName(handlerTypeName, this.getClass().getClassLoader());
+                    typeHandlerRegistry.register(clazz);
+                } catch (ClassNotFoundException e) {
+                    parserContext.getReaderContext().error("TypeHandler加载失败", elt, e);
+                }
             }
         }
+        builder.addPropertyValue("typeHandlerRegistry", typeHandlerRegistry);
     }
 
     private void parseMapperElement(Element elt, ParserContext parserContext, Configuration configuration) {
@@ -184,7 +217,6 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
                 String resource = childElt.getAttribute("resource");
                 String url = childElt.getAttribute("url");
                 String mapperClass = childElt.getAttribute("class");
-
             }
         }
     }

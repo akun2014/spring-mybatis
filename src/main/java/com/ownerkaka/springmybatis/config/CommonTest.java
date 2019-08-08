@@ -1,10 +1,13 @@
 package com.ownerkaka.springmybatis.config;
 
 import org.apache.ibatis.datasource.DataSourceFactory;
-import org.apache.ibatis.session.*;
+import org.apache.ibatis.reflection.factory.ObjectFactory;
+import org.apache.ibatis.session.Configuration;
+import org.apache.ibatis.session.ExecutorType;
+import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.defaults.DefaultSqlSessionFactory;
+import org.junit.Assert;
 import org.junit.Test;
-import org.mybatis.spring.SqlSessionFactoryBean;
 import org.springframework.context.support.GenericXmlApplicationContext;
 
 import javax.sql.DataSource;
@@ -32,15 +35,25 @@ public class CommonTest {
         ExecutorType executorType = configuration.getDefaultExecutorType();
         System.out.println(executorType);
 
-        SqlSessionFactoryBean sessionFactoryBean = applicationContext.getBean(SqlSessionFactoryBean.class);
-        SqlSessionFactory sqlSessionFactory = sessionFactoryBean.getObject();
-        SqlSession sqlSession = sqlSessionFactory.openSession();
+        DataSource dataSource = applicationContext.getBean(DataSource.class);
 
-        Connection connection = sqlSession.getConnection();
-        boolean closed = connection.isClosed();
-        System.out.println(closed);
+        configuration.setDataSourceFactory(new DataSourceFactory() {
+            @Override
+            public void setProperties(Properties props) {
 
-        SqlSessionFactoryBuilder builder = new SqlSessionFactoryBuilder();
+            }
+
+            @Override
+            public DataSource getDataSource() {
+                return dataSource;
+            }
+        });
+
+        ObjectFactory objectFactory = configuration.getObjectFactory();
+
+        DataSource dataSource1 = configuration.getDataSourceFactory().getDataSource();
+        Assert.assertSame(dataSource, dataSource1);
+
 
     }
 
