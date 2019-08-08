@@ -31,9 +31,6 @@ public final class Environment {
     if (id == null) {
       throw new IllegalArgumentException("Parameter 'id' must not be null");
     }
-    if (transactionFactory == null) {
-      throw new IllegalArgumentException("Parameter 'transactionFactory' must not be null");
-    }
     this.id = id;
     if (dataSource == null) {
       throw new IllegalArgumentException("Parameter 'dataSource' must not be null");

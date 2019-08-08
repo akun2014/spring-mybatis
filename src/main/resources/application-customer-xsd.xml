@@ -56,24 +56,6 @@ http://mybatis.org/schema/mybatis-config.xsd"
         </mybatis-config:plugins>
 
         <mybatis-config:environments default="prod">
-            <mybatis-config:environment id="test">
-                <mybatis-config:transactionManager type="JDBC"/>
-                <mybatis-config:dataSource type="POOLED">
-                    <mybatis-config:property name="driver" value="${driver"/>
-                    <mybatis-config:property name="url" value="${spring.datasource.url}"/>
-                    <mybatis-config:property name="username" value="${spring.datasource.username}"/>
-                    <mybatis-config:property name="password" value="${spring.datasource.password}"/>
-                </mybatis-config:dataSource>
-            </mybatis-config:environment>
-            <mybatis-config:environment id="dev">
-                <mybatis-config:transactionManager type="JDBC"/>
-                <mybatis-config:dataSource type="POOLED">
-                    <mybatis-config:property name="driver" value="${driver}"/>
-                    <mybatis-config:property name="url" value="${spring.datasource.url}"/>
-                    <mybatis-config:property name="username" value="${spring.datasource.username}"/>
-                    <mybatis-config:property name="password" value="${spring.datasource.password}"/>
-                </mybatis-config:dataSource>
-            </mybatis-config:environment>
             <mybatis-config:environment id="prod">
                 <mybatis-config:transactionManager type="spring-tx"/>
                 <mybatis-config:dataSource type="DRUID">

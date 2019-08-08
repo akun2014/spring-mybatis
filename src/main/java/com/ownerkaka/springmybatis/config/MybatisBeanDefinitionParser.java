@@ -1,7 +1,6 @@
 package com.ownerkaka.springmybatis.config;
 
 import org.apache.ibatis.builder.BuilderException;
-import org.apache.ibatis.mapping.Environment;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.springframework.beans.factory.config.BeanDefinition;
