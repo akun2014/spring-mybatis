@@ -1,6 +1,7 @@
 package com.ownerkaka.springmybatis.config;
 
 import org.apache.ibatis.builder.BuilderException;
+import org.apache.ibatis.mapping.Environment;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -49,6 +50,7 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
     private static final String ALIAS = "alias";
     private static final String URL_ATTRIBUTE = "url";
     private static final String RESOURCE_ATTRIBUTE = "resource";
+    private static final String ID_ATTRIBUTE = "id";
 
 
     @Override
@@ -185,6 +187,18 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
                 String mapperClass = childElt.getAttribute("class");
 
             }
+        }
+    }
+
+    private void parseEnvironmentsElement(Element elt, ParserContext parserContext, BeanDefinitionBuilder builder) {
+
+        String aDefault = elt.getAttribute("default");
+        List<Element> childElts = DomUtils.getChildElements(elt);
+
+        for (Element childElt : childElts) {
+            String localName = parserContext.getDelegate().getLocalName(childElt);
+
+
         }
     }
 }
