@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mybatis-config="http://mybatis.org/schema/mybatis-config"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+http://mybatis.org/schema/mybatis-config
+http://mybatis.org/schema/mybatis-config.xsd"
+
+>
+
+    <mybatis-config:configuration>
+        <mybatis-config:properties resource="application.properties">
+            <mybatis-config:property name="testKey" value="testValue"/>
+            <mybatis-config:property name="driver" value="com.mysql.cj.jdbc.Driver"/>
+            <mybatis-config:property name="org.apache.ibatis.parsing.PropertyParser.enable-default-value" value="true"/>
+        </mybatis-config:properties>
+        <mybatis-config:settings>
+            <!-- 是否开启全局缓存 -->
+            <mybatis-config:setting name="cacheEnabled" value="true"/>
+            <!-- 局部缓存范围 SESSION | STATEMENT-->
+            <!-- SESSION 同一session | STATEMENT 相同SQL-->
+            <mybatis-config:setting name="localCacheScope" value="SESSION"/>
+            <mybatis-config:setting name="lazyLoadingEnabled" value="false"/>
+            <mybatis-config:setting name="multipleResultSetsEnabled" value="true"/>
+            <mybatis-config:setting name="useColumnLabel" value="true"/>
+            <mybatis-config:setting name="useGeneratedKeys" value="false"/>
+            <mybatis-config:setting name="autoMappingBehavior" value="PARTIAL"/>
+            <mybatis-config:setting name="autoMappingUnknownColumnBehavior" value="WARNING"/>
+            <mybatis-config:setting name="defaultExecutorType" value="SIMPLE"/>
+            <mybatis-config:setting name="defaultStatementTimeout" value="25"/>
+            <mybatis-config:setting name="defaultFetchSize" value="100"/>
+            <mybatis-config:setting name="safeRowBoundsEnabled" value="false"/>
+            <mybatis-config:setting name="mapUnderscoreToCamelCase" value="false"/>
+            <mybatis-config:setting name="jdbcTypeForNull" value="OTHER"/>
+            <mybatis-config:setting name="lazyLoadTriggerMethods" value="equals,clone,hashCode,toString"/>
+            <mybatis-config:setting name="logImpl" value="SLF4J"/>
+        </mybatis-config:settings>
+
+        <mybatis-config:typeAliases>
+            <mybatis-config:typeAlias alias="spring-tx"
+                                      type="org.mybatis.spring.transaction.SpringManagedTransactionFactory"/>
+            <!--<mybatis-config:typeAlias alias="User" type="com.ownerkaka.testjdk.mybatis.domain.User"/>-->
+            <mybatis-config:package name="com.ownerkaka.testjdk.mybatis.domain"/>
+        </mybatis-config:typeAliases>
+
+        <mybatis-config:typeHandlers>
+            <mybatis-config:package name="com.ownerkaka.testjdk.mybatis.typehandler"/>
+        </mybatis-config:typeHandlers>
+        <mybatis-config:objectFactory type="com.ownerkaka.testjdk.mybatis.ExampleObjectFactory"/>
+
+        <mybatis-config:plugins>
+            <mybatis-config:plugin interceptor="com.ownerkaka.testjdk.mybatis.mybatis-config:plugin.MyPlugin">
+                <mybatis-config:property name="pluginKey" value="pluginValue"/>
+            </mybatis-config:plugin>
+        </mybatis-config:plugins>
+
+        <mybatis-config:environments default="prod">
+            <mybatis-config:environment id="test">
+                <mybatis-config:transactionManager type="JDBC"/>
+                <mybatis-config:dataSource type="POOLED">
+                    <mybatis-config:property name="driver" value="${driver"/>
+                    <mybatis-config:property name="url" value="${spring.datasource.url}"/>
+                    <mybatis-config:property name="username" value="${spring.datasource.username}"/>
+                    <mybatis-config:property name="password" value="${spring.datasource.password}"/>
+                </mybatis-config:dataSource>
+            </mybatis-config:environment>
+            <mybatis-config:environment id="dev">
+                <mybatis-config:transactionManager type="JDBC"/>
+                <mybatis-config:dataSource type="POOLED">
+                    <mybatis-config:property name="driver" value="${driver}"/>
+                    <mybatis-config:property name="url" value="${spring.datasource.url}"/>
+                    <mybatis-config:property name="username" value="${spring.datasource.username}"/>
+                    <mybatis-config:property name="password" value="${spring.datasource.password}"/>
+                </mybatis-config:dataSource>
+            </mybatis-config:environment>
+            <mybatis-config:environment id="prod">
+                <mybatis-config:transactionManager type="spring-tx"/>
+                <mybatis-config:dataSource type="DRUID">
+                    <mybatis-config:property name="druid.driver" value="${driver}"/>
+                    <mybatis-config:property name="druid.url" value="${spring.datasource.url}"/>
+                    <mybatis-config:property name="druid.username" value="${spring.datasource.username}"/>
+                    <mybatis-config:property name="druid.password" value="${spring.datasource.password}"/>
+                </mybatis-config:dataSource>
+            </mybatis-config:environment>
+        </mybatis-config:environments>
+
+        <mybatis-config:mappers>
+            <!--<mybatis-config:package name="com.ownerkaka.testjdk.mybatis.mybatis-config:mapper"/>-->
+            <mybatis-config:mapper resource="mybatis/mybatis-config:mapper/UserMapper.xml" class="" url=""/>
+            <mybatis-config:mapper resource="mybatis/mybatis-config:mapper/OptionsMapper.xml"/>
+            <mybatis-config:mapper resource="mybatis/mybatis-config:mapper/CommonMapper.xml"/>
+        </mybatis-config:mappers>
+    </mybatis-config:configuration>
+
+    <!--<mybatis-mapper:mapper namespace="test">-->
+    <!--<mybatis-mapper:select id="test"/>-->
+    <!--</mybatis-mapper:mapper>-->
+
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" destroy-method="close" init-method="init">
+        <property name="url" value="${spring.datasource.url}"/>
+        <property name="username" value="${spring.datasource.username}"/>
+        <property name="password" value="${spring.datasource.password}"/>
+    </bean>
+
+    <bean id="sqlSessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property
+                name="locations"> <!-- PropertyPlaceholderConfigurer类中有个locations属性，接收的是一个数组，即我们可以在下面配好多个properties文件 -->
+            <array>
+                <value>classpath:application.properties</value>
+            </array>
+        </property>
+    </bean>
+
+</beans>

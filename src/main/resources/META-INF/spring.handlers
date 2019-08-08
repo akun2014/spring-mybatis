@@ -1,0 +1,2 @@
+http\://mybatis.org/schema/mybatis-config=com.ownerkaka.springmybatis.config.MybatisNamespaceHandler
+http\://mybatis.org/schema/mybatis-mapper=com.ownerkaka.springmybatis.config.MybatisNamespaceHandler

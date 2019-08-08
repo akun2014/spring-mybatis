@@ -1,0 +1,5 @@
+#http\://mybatis.org/schema/mybatis-config.xsd=org/apache/ibatis/builder/xml/mybatis-config.xsd
+#http\://mybatis.org/schema/mybatis-mapper.xsd=org/apache/ibatis/builder/xml/mybatis-mapper.xsd
+
+http\://mybatis.org/schema/mybatis-config.xsd=META-INF/mybatis-config.xsd
+http\://mybatis.org/schema/mybatis-mapper.xsd=META-INF/mybatis-mapper.xsd
