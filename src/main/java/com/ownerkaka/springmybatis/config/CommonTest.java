@@ -53,8 +53,6 @@ public class CommonTest {
 
         DataSource dataSource1 = configuration.getDataSourceFactory().getDataSource();
         Assert.assertSame(dataSource, dataSource1);
-
-
     }
 
     @Test

@@ -44,12 +44,13 @@ http://mybatis.org/schema/mybatis-config.xsd"
         </mybatis:typeAliases>
 
         <mybatis:typeHandlers>
-            <mybatis:package name="com.ownerkaka.testjdk.mybatis.typehandler"/>
+            <mybatis:typeHandler handler="com.ownerkaka.springmybatis.config.MyTypeHandler"/>
+            <!--<mybatis:package name="com.ownerkaka.testjdk.mybatis.typehandler"/>-->
         </mybatis:typeHandlers>
         <mybatis:objectFactory type="com.ownerkaka.springmybatis.config.ExampleObjectFactory"/>
 
         <mybatis:plugins>
-            <mybatis:plugin interceptor="com.ownerkaka.testjdk.mybatis.mybatis:plugin.MyPlugin">
+            <mybatis:plugin interceptor="com.ownerkaka.springmybatis.config.MyPlugin">
                 <mybatis:property name="pluginKey" value="pluginValue"/>
             </mybatis:plugin>
         </mybatis:plugins>
@@ -68,7 +69,7 @@ http://mybatis.org/schema/mybatis-config.xsd"
 
         <mybatis:mappers>
             <!--<mybatis:package name="com.ownerkaka.testjdk.mybatis.mybatis:mapper"/>-->
-            <mybatis:mapper resource="mybatis/mybatis:mapper/UserMapper.xml" class="" url=""/>
+            <mybatis:mapper resource="mybatis/mybatis:mapper/UserMapper.xml"/>
             <mybatis:mapper resource="mybatis/mybatis:mapper/OptionsMapper.xml"/>
             <mybatis:mapper resource="mybatis/mybatis:mapper/CommonMapper.xml"/>
         </mybatis:mappers>

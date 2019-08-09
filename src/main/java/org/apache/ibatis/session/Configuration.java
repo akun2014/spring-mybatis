@@ -120,13 +120,13 @@ public class Configuration {
      */
     protected Class<?> configurationFactory;
 
-    protected final MapperRegistry mapperRegistry = new MapperRegistry(this);
-    protected final InterceptorChain interceptorChain = new InterceptorChain();
-    protected final TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry();
+    protected MapperRegistry mapperRegistry = new MapperRegistry(this);
+    protected InterceptorChain interceptorChain = new InterceptorChain();
+    protected TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry();
     protected TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
-    protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
+    protected LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
 
-    protected final Map<String, MappedStatement> mappedStatements = new StrictMap<MappedStatement>("Mapped Statements collection")
+    protected Map<String, MappedStatement> mappedStatements = new StrictMap<MappedStatement>("Mapped Statements collection")
             .conflictMessageProducer((savedValue, targetValue) ->
                     ". please check " + savedValue.getResource() + " and " + targetValue.getResource());
     protected final Map<String, Cache> caches = new StrictMap<>("Caches collection");
@@ -285,6 +285,10 @@ public class Configuration {
 
     public void setEnvironment(Environment environment) {
         this.environment = environment;
+    }
+
+    public void setTypeHandlerRegistry(TypeHandlerRegistry typeHandlerRegistry) {
+        this.typeHandlerRegistry = typeHandlerRegistry;
     }
 
     public AutoMappingBehavior getAutoMappingBehavior() {
@@ -951,4 +955,31 @@ public class Configuration {
         this.dataSourceFactory = dataSourceFactory;
     }
 
+    public void setMapperRegistry(MapperRegistry mapperRegistry) {
+        this.mapperRegistry = mapperRegistry;
+    }
+
+    public InterceptorChain getInterceptorChain() {
+        return interceptorChain;
+    }
+
+    public void setInterceptorChain(InterceptorChain interceptorChain) {
+        this.interceptorChain = interceptorChain;
+    }
+
+    public void setLanguageRegistry(LanguageDriverRegistry languageRegistry) {
+        this.languageRegistry = languageRegistry;
+    }
+
+    public void setMappedStatements(Map<String, MappedStatement> mappedStatements) {
+        this.mappedStatements = mappedStatements;
+    }
+
+    public Set<String> getLoadedResources() {
+        return loadedResources;
+    }
+
+    public Map<String, String> getCacheRefMap() {
+        return cacheRefMap;
+    }
 }

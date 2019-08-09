@@ -1,7 +1,13 @@
 package com.ownerkaka.springmybatis.config;
 
+import org.apache.ibatis.binding.MapperRegistry;
 import org.apache.ibatis.builder.BuilderException;
+import org.apache.ibatis.builder.xml.XMLMapperBuilder;
+import org.apache.ibatis.plugin.Interceptor;
+import org.apache.ibatis.plugin.InterceptorChain;
+import org.apache.ibatis.reflection.ReflectorFactory;
 import org.apache.ibatis.reflection.factory.ObjectFactory;
+import org.apache.ibatis.reflection.wrapper.ObjectWrapperFactory;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.type.TypeAliasRegistry;
 import org.apache.ibatis.type.TypeHandlerRegistry;
@@ -21,6 +27,7 @@ import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Element;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.util.HashSet;
 import java.util.List;
@@ -72,16 +79,143 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
             } else if (OBJECT_FACTORY.equals(localName)) {
                 parseObjectFactory(elt, parserContext, builder);
             } else if (OBJECT_WRAPPER_FACTORY.equals(localName)) {
+                parseObjectWrapperFactory(elt, parserContext, builder);
             } else if (REFLECTOR_FACTORY.equals(localName)) {
+                parseReflectorFactory(elt, parserContext, builder);
             } else if (PLUGINS.equals(localName)) {
+                parsePlugins(elt, parserContext, builder);
             } else if (ENVIRONMENTS.equals(localName)) {
+                parseEnvironmentsElement(elt, parserContext, builder);
             } else if (DATABASEID_PROVIDER.equals(localName)) {
+                parseDatabaseIdProviderElement(elt, parserContext, builder);
             } else if (MAPPERS.equals(localName)) {
+                parseMappers(elt, parserContext, builder);
             }
         }
         AbstractBeanDefinition beanDefinition = builder.getBeanDefinition();
         parserContext.getRegistry().registerBeanDefinition("mybatisConfig", beanDefinition);
         return beanDefinition;
+    }
+
+    private void parseDatabaseIdProviderElement(Element elt, ParserContext parserContext, BeanDefinitionBuilder builder) {
+
+        //todo
+    }
+
+    private void parseReflectorFactory(Element elt, ParserContext parserContext, BeanDefinitionBuilder builder) {
+        String type = elt.getAttribute(TYPE_ATTRIBUTE);
+        Class<?> aClass = null;
+        try {
+            aClass = ClassUtils.forName(type, this.getClass().getClassLoader());
+        } catch (ClassNotFoundException e) {
+            parserContext.getReaderContext().error("ReflectorFactory加载失败", elt, e);
+        }
+        ReflectorFactory reflectorFactory = null;
+        try {
+            reflectorFactory = (ReflectorFactory) aClass.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            parserContext.getReaderContext().error("ReflectorFactory加载失败", elt, e);
+        }
+        builder.addPropertyValue("reflectorFactory", reflectorFactory);
+    }
+
+    private void parseMappers(Element elt, ParserContext parserContext, BeanDefinitionBuilder builder) {
+        List<Element> childElts = DomUtils.getChildElements(elt);
+        MapperRegistry mapperRegistry = new MapperRegistry(new Configuration());
+        for (Element childElt : childElts) {
+            String localName = parserContext.getDelegate().getLocalName(childElt);
+            if (PACKAGE.equals(localName)) {
+                String mapperPackage = childElt.getAttribute(NAME);
+                // TODO typeAliasPackage
+            } else {
+                String resource = childElt.getAttribute("resource");
+                String url = childElt.getAttribute("url");
+                String mapperClass = childElt.getAttribute("class");
+                Set<String> set = new HashSet<>(4);
+                set.add(resource);
+                set.add(url);
+                set.add(mapperClass);
+                if (set.size() > 1) {
+                    throw new BuilderException("A mapper element may only specify a url, resource or class, but not more than one.");
+                }
+                if (StringUtils.hasText(resource)) {
+                    ClassPathResource classPathResource = new ClassPathResource(resource);
+                    try {
+                        InputStream inputStream = classPathResource.getInputStream();
+                        XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, mapperRegistry.getConfig(),
+                                resource, mapperRegistry.getConfig().getSqlFragments());
+                        mapperParser.parse();
+                    } catch (IOException e) {
+                        parserContext.getReaderContext().error("Mappers加载失败,IOException", elt, e);
+                    }
+                    continue;
+                }
+                if (StringUtils.hasText(url)) {
+                    try {
+                        UrlResource urlResource = new UrlResource(url);
+                        InputStream inputStream = urlResource.getInputStream();
+                        XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, mapperRegistry.getConfig(),
+                                url, mapperRegistry.getConfig().getSqlFragments());
+                        mapperParser.parse();
+                    } catch (MalformedURLException e) {
+                        parserContext.getReaderContext().error("Mappers加载失败", elt, e);
+                    } catch (IOException e) {
+                        parserContext.getReaderContext().error("Mappers加载失败,IOException", elt, e);
+                    }
+                    continue;
+                }
+                if (StringUtils.hasText(mapperClass)) {
+                    try {
+                        Class<?> mapperInterface = ClassUtils.forName(mapperClass, this.getClass().getClassLoader());
+                        mapperRegistry.addMapper(mapperInterface);
+                    } catch (ClassNotFoundException e) {
+                        parserContext.getReaderContext().error("Mappers加载失败", elt, e);
+                    }
+                }
+            }
+        }
+        builder.addPropertyValue("mapperRegistry", mapperRegistry);
+    }
+
+    private void parseObjectWrapperFactory(Element elt, ParserContext parserContext, BeanDefinitionBuilder builder) {
+        String type = elt.getAttribute(TYPE_ATTRIBUTE);
+        Class<?> aClass = null;
+        try {
+            aClass = ClassUtils.forName(type, this.getClass().getClassLoader());
+        } catch (ClassNotFoundException e) {
+            parserContext.getReaderContext().error("ObjectWrapperFactory加载失败", elt, e);
+        }
+        ObjectWrapperFactory objectWrapperFactory = null;
+        try {
+            objectWrapperFactory = (ObjectWrapperFactory) aClass.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            parserContext.getReaderContext().error("ObjectWrapperFactory加载失败", elt, e);
+        }
+        builder.addPropertyValue("objectWrapperFactory", objectWrapperFactory);
+    }
+
+    private void parsePlugins(Element elt, ParserContext parserContext, BeanDefinitionBuilder builder) {
+        List<Element> childElts = DomUtils.getChildElements(elt);
+        InterceptorChain interceptorChain = new InterceptorChain();
+        for (Element childElt : childElts) {
+            String interceptor = childElt.getAttribute("interceptor");
+            Class<?> aClass = null;
+            try {
+                aClass = ClassUtils.forName(interceptor, this.getClass().getClassLoader());
+            } catch (ClassNotFoundException e) {
+                parserContext.getReaderContext().error("interceptor加载失败", elt, e);
+            }
+            Interceptor interceptorInstance = null;
+            try {
+                interceptorInstance = (Interceptor) aClass.newInstance();
+            } catch (InstantiationException e) {
+                parserContext.getReaderContext().error("interceptor加载失败", elt, e);
+            } catch (IllegalAccessException e) {
+                parserContext.getReaderContext().error("interceptor加载失败", elt, e);
+            }
+            interceptorChain.addInterceptor(interceptorInstance);
+        }
+        builder.addPropertyValue("interceptorChain", interceptorChain);
     }
 
     private void parseObjectFactory(Element elt, ParserContext parserContext, BeanDefinitionBuilder builder) {
@@ -204,21 +338,6 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
             }
         }
         builder.addPropertyValue("typeHandlerRegistry", typeHandlerRegistry);
-    }
-
-    private void parseMapperElement(Element elt, ParserContext parserContext, Configuration configuration) {
-        List<Element> childElts = DomUtils.getChildElements(elt);
-
-        for (Element childElt : childElts) {
-            if (childElt.hasAttribute(PACKAGE)) {
-                String mapperPackage = childElt.getAttribute(NAME);
-                configuration.addMappers(mapperPackage);
-            } else {
-                String resource = childElt.getAttribute("resource");
-                String url = childElt.getAttribute("url");
-                String mapperClass = childElt.getAttribute("class");
-            }
-        }
     }
 
     private void parseEnvironmentsElement(Element elt, ParserContext parserContext, BeanDefinitionBuilder builder) {
