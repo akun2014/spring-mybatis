@@ -31,9 +31,17 @@ import java.sql.SQLException;
  */
 public class DefaultSqlSessionFactory implements SqlSessionFactory {
 
-    private final Configuration configuration;
+    private Configuration configuration;
 
     public DefaultSqlSessionFactory(Configuration configuration) {
+        this.configuration = configuration;
+    }
+
+    public DefaultSqlSessionFactory() {
+    }
+
+    @Override
+    public void setConfiguration(Configuration configuration) {
         this.configuration = configuration;
     }
 

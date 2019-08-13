@@ -1,6 +1,5 @@
 package com.ownerkaka.springmybatis.config;
 
-import org.apache.ibatis.binding.MapperRegistry;
 import org.apache.ibatis.builder.BuilderException;
 import org.apache.ibatis.builder.xml.XMLMapperBuilder;
 import org.apache.ibatis.plugin.Interceptor;
@@ -9,10 +8,9 @@ import org.apache.ibatis.reflection.ReflectorFactory;
 import org.apache.ibatis.reflection.factory.ObjectFactory;
 import org.apache.ibatis.reflection.wrapper.ObjectWrapperFactory;
 import org.apache.ibatis.session.Configuration;
+import org.apache.ibatis.session.defaults.DefaultSqlSessionFactory;
 import org.apache.ibatis.type.TypeAliasRegistry;
-import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.springframework.beans.factory.config.BeanDefinition;
-import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
@@ -59,11 +57,15 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
     private static final String URL_ATTRIBUTE = "url";
     private static final String RESOURCE_ATTRIBUTE = "resource";
     private static final String ID_ATTRIBUTE = "id";
+    private static final String CONFIGURATION = "configuration";
 
 
     @Override
     public BeanDefinition parse(Element element, ParserContext parserContext) {
-        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(Configuration.class);
+        BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(DefaultSqlSessionFactory.class);
+//        builder.addPropertyReference(CONFIGURATION, CONFIGURATION);
+        builder.addPropertyValue(CONFIGURATION, new Configuration());
+        parserContext.getRegistry().registerBeanDefinition("sqlSessionFactory", builder.getBeanDefinition());
 
         List<Element> childElts = DomUtils.getChildElements(element);
         for (Element elt : childElts) {
@@ -92,9 +94,7 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
                 parseMappers(elt, parserContext, builder);
             }
         }
-        AbstractBeanDefinition beanDefinition = builder.getBeanDefinition();
-        parserContext.getRegistry().registerBeanDefinition("mybatisConfig", beanDefinition);
-        return beanDefinition;
+        return null;
     }
 
     private void parseDatabaseIdProviderElement(Element elt, ParserContext parserContext, BeanDefinitionBuilder builder) {
@@ -116,25 +116,32 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
         } catch (InstantiationException | IllegalAccessException e) {
             parserContext.getReaderContext().error("ReflectorFactory加载失败", elt, e);
         }
-        builder.addPropertyValue("reflectorFactory", reflectorFactory);
+        Configuration configuration = (Configuration) builder.getBeanDefinition().getPropertyValues().get(CONFIGURATION);
+        configuration.setReflectorFactory(reflectorFactory);
     }
 
     private void parseMappers(Element elt, ParserContext parserContext, BeanDefinitionBuilder builder) {
         List<Element> childElts = DomUtils.getChildElements(elt);
-        MapperRegistry mapperRegistry = new MapperRegistry(new Configuration());
+        Configuration configuration = (Configuration) builder.getBeanDefinition().getPropertyValues().get(CONFIGURATION);
         for (Element childElt : childElts) {
             String localName = parserContext.getDelegate().getLocalName(childElt);
             if (PACKAGE.equals(localName)) {
                 String mapperPackage = childElt.getAttribute(NAME);
-                // TODO typeAliasPackage
+                configuration.addMappers(mapperPackage);
             } else {
                 String resource = childElt.getAttribute("resource");
                 String url = childElt.getAttribute("url");
                 String mapperClass = childElt.getAttribute("class");
                 Set<String> set = new HashSet<>(4);
-                set.add(resource);
-                set.add(url);
-                set.add(mapperClass);
+                if (StringUtils.hasText(resource)) {
+                    set.add(resource);
+                }
+                if (StringUtils.hasText(url)) {
+                    set.add(url);
+                }
+                if (StringUtils.hasText(mapperClass)) {
+                    set.add(mapperClass);
+                }
                 if (set.size() > 1) {
                     throw new BuilderException("A mapper element may only specify a url, resource or class, but not more than one.");
                 }
@@ -142,8 +149,8 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
                     ClassPathResource classPathResource = new ClassPathResource(resource);
                     try {
                         InputStream inputStream = classPathResource.getInputStream();
-                        XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, mapperRegistry.getConfig(),
-                                resource, mapperRegistry.getConfig().getSqlFragments());
+                        XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration,
+                                resource, configuration.getSqlFragments());
                         mapperParser.parse();
                     } catch (IOException e) {
                         parserContext.getReaderContext().error("Mappers加载失败,IOException", elt, e);
@@ -154,8 +161,8 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
                     try {
                         UrlResource urlResource = new UrlResource(url);
                         InputStream inputStream = urlResource.getInputStream();
-                        XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, mapperRegistry.getConfig(),
-                                url, mapperRegistry.getConfig().getSqlFragments());
+                        XMLMapperBuilder mapperParser = new XMLMapperBuilder(inputStream, configuration,
+                                url, configuration.getSqlFragments());
                         mapperParser.parse();
                     } catch (MalformedURLException e) {
                         parserContext.getReaderContext().error("Mappers加载失败", elt, e);
@@ -167,14 +174,13 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
                 if (StringUtils.hasText(mapperClass)) {
                     try {
                         Class<?> mapperInterface = ClassUtils.forName(mapperClass, this.getClass().getClassLoader());
-                        mapperRegistry.addMapper(mapperInterface);
+                        configuration.addMapper(mapperInterface);
                     } catch (ClassNotFoundException e) {
                         parserContext.getReaderContext().error("Mappers加载失败", elt, e);
                     }
                 }
             }
         }
-        builder.addPropertyValue("mapperRegistry", mapperRegistry);
     }
 
     private void parseObjectWrapperFactory(Element elt, ParserContext parserContext, BeanDefinitionBuilder builder) {
@@ -191,7 +197,8 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
         } catch (InstantiationException | IllegalAccessException e) {
             parserContext.getReaderContext().error("ObjectWrapperFactory加载失败", elt, e);
         }
-        builder.addPropertyValue("objectWrapperFactory", objectWrapperFactory);
+        Configuration configuration = (Configuration) builder.getBeanDefinition().getPropertyValues().get(CONFIGURATION);
+        configuration.setObjectWrapperFactory(objectWrapperFactory);
     }
 
     private void parsePlugins(Element elt, ParserContext parserContext, BeanDefinitionBuilder builder) {
@@ -215,7 +222,8 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
             }
             interceptorChain.addInterceptor(interceptorInstance);
         }
-        builder.addPropertyValue("interceptorChain", interceptorChain);
+        Configuration configuration = (Configuration) builder.getBeanDefinition().getPropertyValues().get(CONFIGURATION);
+        configuration.setInterceptorChain(interceptorChain);
     }
 
     private void parseObjectFactory(Element elt, ParserContext parserContext, BeanDefinitionBuilder builder) {
@@ -234,7 +242,8 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
         } catch (IllegalAccessException e) {
             parserContext.getReaderContext().error("ObjectFactory加载失败", elt, e);
         }
-        builder.addPropertyValue("objectFactory", objectFactory);
+        Configuration configuration = (Configuration) builder.getBeanDefinition().getPropertyValues().get(CONFIGURATION);
+        configuration.setObjectFactory(objectFactory);
     }
 
     private PropertiesPersister propertiesPersister = new DefaultPropertiesPersister();
@@ -269,7 +278,8 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
         for (Element childElt : childElts) {
             properties.setProperty(childElt.getAttribute(NAME), childElt.getAttribute(VALUE));
         }
-        builder.addPropertyValue("variables", properties);
+        Configuration configuration = (Configuration) builder.getBeanDefinition().getPropertyValues().get(CONFIGURATION);
+        configuration.setVariables(properties);
     }
 
     private void parseSettings(Element elt, ParserContext parserContext, BeanDefinitionBuilder builder) {
@@ -283,7 +293,7 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
                 continue;
             }
             String value = childElt.getAttribute(VALUE);
-            builder.addPropertyValue(name, value);
+//            builder.addPropertyValue(name, value);
         }
     }
 
@@ -291,11 +301,12 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
         List<Element> childElts = DomUtils.getChildElements(elt);
 
         TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
+        Configuration configuration = (Configuration) builder.getBeanDefinition().getPropertyValues().get(CONFIGURATION);
         for (Element childElt : childElts) {
             String localName = parserContext.getDelegate().getLocalName(childElt);
             if (PACKAGE.equals(localName)) {
                 String typeAliasPackage = childElt.getAttribute(NAME);
-                // TODO typeAliasPackage
+                configuration.getTypeAliasRegistry().registerAliases(typeAliasPackage);
             } else {
                 String alias = childElt.getAttribute(ALIAS);
                 String type = childElt.getAttribute(TYPE_ATTRIBUTE);
@@ -314,30 +325,30 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
                 }
             }
         }
-        builder.addPropertyValue("typeAliasRegistry", typeAliasRegistry);
+        configuration.setTypeAliasRegistry(typeAliasRegistry);
     }
 
     private void parseTypeHandlerElement(Element elt, ParserContext parserContext, BeanDefinitionBuilder builder) {
         List<Element> childElts = DomUtils.getChildElements(elt);
 
-        TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry();
+        Configuration configuration = (Configuration) builder.getBeanDefinition().getPropertyValues().get(CONFIGURATION);
         for (Element childElt : childElts) {
             if (childElt.hasAttribute(PACKAGE)) {
                 String typeHandlerPackage = childElt.getAttribute(NAME);
-                // todo typeHandlerPackage
+                configuration.getTypeHandlerRegistry().register(typeHandlerPackage);
             } else {
+                // todo
                 String javaTypeName = childElt.getAttribute("javaType");
                 String jdbcTypeName = childElt.getAttribute("jdbcType");
                 String handlerTypeName = childElt.getAttribute("handler");
                 try {
                     Class<?> clazz = ClassUtils.forName(handlerTypeName, this.getClass().getClassLoader());
-                    typeHandlerRegistry.register(clazz);
+                    configuration.getTypeHandlerRegistry().register(clazz);
                 } catch (ClassNotFoundException e) {
                     parserContext.getReaderContext().error("TypeHandler加载失败", elt, e);
                 }
             }
         }
-        builder.addPropertyValue("typeHandlerRegistry", typeHandlerRegistry);
     }
 
     private void parseEnvironmentsElement(Element elt, ParserContext parserContext, BeanDefinitionBuilder builder) {

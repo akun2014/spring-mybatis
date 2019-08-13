@@ -3,12 +3,15 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="options">
-    <select id="selectOne" resultType="hashmap">
+    <select id="selectOne" resultType="com.ownerkaka.springmybatis.config.OwnerkakaOptions">
         select *
-        from t_options where name = 'site_title'
+        from ownerkaka_options
+        where fieldName = 'name'
     </select>
 
     <update id="updateOne">
-        update t_options set `value` = #{value} where `description` = 'testTx'
+        update ownerkaka_options
+        set `fieldVale` = #{value}
+        where `fieldName` = 'name'
     </update>
 </mapper>

@@ -39,7 +39,7 @@ http://mybatis.org/schema/mybatis-config.xsd"
         <mybatis:typeAliases>
             <mybatis:typeAlias alias="spring-tx"
                                type="org.mybatis.spring.transaction.SpringManagedTransactionFactory"/>
-            <!--<mybatis:typeAlias alias="User" type="com.ownerkaka.testjdk.mybatis.domain.User"/>-->
+            <mybatis:typeAlias alias="User" type="com.ownerkaka.springmybatis.config.User"/>
             <mybatis:package name="com.ownerkaka.testjdk.mybatis.domain"/>
         </mybatis:typeAliases>
 
@@ -68,12 +68,12 @@ http://mybatis.org/schema/mybatis-config.xsd"
         </mybatis:environments>
 
         <mybatis:mappers>
-            <!--<mybatis:package name="com.ownerkaka.testjdk.mybatis.mybatis:mapper"/>-->
-            <mybatis:mapper resource="mybatis/mybatis:mapper/UserMapper.xml"/>
-            <mybatis:mapper resource="mybatis/mybatis:mapper/OptionsMapper.xml"/>
-            <mybatis:mapper resource="mybatis/mybatis:mapper/CommonMapper.xml"/>
+            <mybatis:mapper resource="OptionsMapper.xml"/>
+            <mybatis:mapper resource="UserMapper.xml"/>
         </mybatis:mappers>
     </mybatis:configuration>
+
+    <import resource="application-customer-xsd.xml"/>
 
     <!--<mybatis-mapper:mapper namespace="test">-->
     <!--<mybatis-mapper:select id="test"/>-->
@@ -95,7 +95,7 @@ http://mybatis.org/schema/mybatis-config.xsd"
 
     <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
         <property
-                name="locations"> <!-- PropertyPlaceholderConfigurer类中有个locations属性，接收的是一个数组，即我们可以在下面配好多个properties文件 -->
+                name="locations">
             <array>
                 <value>classpath:application.properties</value>
             </array>
