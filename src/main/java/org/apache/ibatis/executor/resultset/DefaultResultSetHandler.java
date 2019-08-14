@@ -79,7 +79,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
   private final ParameterHandler parameterHandler;
   private final ResultHandler<?> resultHandler;
   private final BoundSql boundSql;
-  private final TypeHandlerRegistry typeHandlerRegistry;
+//  private final TypeHandlerRegistry TypeHandlerRegistry;
   private final ObjectFactory objectFactory;
   private final ReflectorFactory reflectorFactory;
 
@@ -125,7 +125,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
     this.rowBounds = rowBounds;
     this.parameterHandler = parameterHandler;
     this.boundSql = boundSql;
-    this.typeHandlerRegistry = configuration.getTypeHandlerRegistry();
+//    this.TypeHandlerRegistry = configuration.getTypeHandlerRegistry();
     this.objectFactory = configuration.getObjectFactory();
     this.reflectorFactory = configuration.getReflectorFactory();
     this.resultHandler = resultHandler;
@@ -496,7 +496,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
             continue;
           }
           final Class<?> propertyType = metaObject.getSetterType(property);
-          if (typeHandlerRegistry.hasTypeHandler(propertyType, rsw.getJdbcType(columnName))) {
+          if (TypeHandlerRegistry.hasTypeHandler(propertyType, rsw.getJdbcType(columnName))) {
             final TypeHandler<?> typeHandler = rsw.getTypeHandler(propertyType, columnName);
             autoMapping.add(new UnMappedColumnAutoMapping(columnName, property, typeHandler, propertyType.isPrimitive()));
           } else {
@@ -695,7 +695,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
       return false;
     }
     for (int i = 0; i < parameterTypes.length; i++) {
-      if (!typeHandlerRegistry.hasTypeHandler(parameterTypes[i], jdbcTypes.get(i))) {
+      if (!TypeHandlerRegistry.hasTypeHandler(parameterTypes[i], jdbcTypes.get(i))) {
         return false;
       }
     }
@@ -774,10 +774,10 @@ public class DefaultResultSetHandler implements ResultSetHandler {
 
   private Object prepareSimpleKeyParameter(ResultSet rs, ResultMapping resultMapping, Class<?> parameterType, String columnPrefix) throws SQLException {
     final TypeHandler<?> typeHandler;
-    if (typeHandlerRegistry.hasTypeHandler(parameterType)) {
-      typeHandler = typeHandlerRegistry.getTypeHandler(parameterType);
+    if (TypeHandlerRegistry.hasTypeHandler(parameterType)) {
+      typeHandler = TypeHandlerRegistry.getTypeHandler(parameterType);
     } else {
-      typeHandler = typeHandlerRegistry.getUnknownTypeHandler();
+      typeHandler = TypeHandlerRegistry.getUnknownTypeHandler();
     }
     return typeHandler.getResult(rs, prependPrefix(resultMapping.getColumn(), columnPrefix));
   }
@@ -788,7 +788,7 @@ public class DefaultResultSetHandler implements ResultSetHandler {
     boolean foundValues = false;
     for (ResultMapping innerResultMapping : resultMapping.getComposites()) {
       final Class<?> propType = metaObject.getSetterType(innerResultMapping.getProperty());
-      final TypeHandler<?> typeHandler = typeHandlerRegistry.getTypeHandler(propType);
+      final TypeHandler<?> typeHandler = TypeHandlerRegistry.getTypeHandler(propType);
       final Object propValue = typeHandler.getResult(rs, prependPrefix(innerResultMapping.getColumn(), columnPrefix));
       // issue #353 & #560 do not execute nested query if key is null
       if (propValue != null) {
@@ -1138,9 +1138,9 @@ public class DefaultResultSetHandler implements ResultSetHandler {
 
   private boolean hasTypeHandlerForResultObject(ResultSetWrapper rsw, Class<?> resultType) {
     if (rsw.getColumnNames().size() == 1) {
-      return typeHandlerRegistry.hasTypeHandler(resultType, rsw.getJdbcType(rsw.getColumnNames().get(0)));
+      return TypeHandlerRegistry.hasTypeHandler(resultType, rsw.getJdbcType(rsw.getColumnNames().get(0)));
     }
-    return typeHandlerRegistry.hasTypeHandler(resultType);
+    return TypeHandlerRegistry.hasTypeHandler(resultType);
   }
 
 }

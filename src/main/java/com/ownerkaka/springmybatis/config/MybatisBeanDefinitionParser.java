@@ -10,6 +10,7 @@ import org.apache.ibatis.reflection.wrapper.ObjectWrapperFactory;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.defaults.DefaultSqlSessionFactory;
 import org.apache.ibatis.type.TypeAliasRegistry;
+import org.apache.ibatis.type.TypeHandlerRegistry;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
@@ -91,7 +92,7 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
             } else if (DATABASEID_PROVIDER.equals(localName)) {
                 parseDatabaseIdProviderElement(elt, parserContext, builder);
             } else if (MAPPERS.equals(localName)) {
-                parseMappers(elt, parserContext, builder);
+//                parseMappers(elt, parserContext, builder);
             }
         }
         return null;
@@ -306,13 +307,13 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
             String localName = parserContext.getDelegate().getLocalName(childElt);
             if (PACKAGE.equals(localName)) {
                 String typeAliasPackage = childElt.getAttribute(NAME);
-                configuration.getTypeAliasRegistry().registerAliases(typeAliasPackage);
+                TypeAliasRegistry.registerAliases(typeAliasPackage);
             } else {
                 String alias = childElt.getAttribute(ALIAS);
                 String type = childElt.getAttribute(TYPE_ATTRIBUTE);
                 try {
                     Class<?> clazz = ClassUtils.forName(type, this.getClass().getClassLoader());
-                    typeAliasRegistry.registerAlias(alias, clazz);
+                    TypeAliasRegistry.registerAlias(alias, clazz);
 
                     GenericBeanDefinition genericBeanDefinition = new GenericBeanDefinition();
                     genericBeanDefinition.setBeanClass(clazz);
@@ -325,7 +326,6 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
                 }
             }
         }
-        configuration.setTypeAliasRegistry(typeAliasRegistry);
     }
 
     private void parseTypeHandlerElement(Element elt, ParserContext parserContext, BeanDefinitionBuilder builder) {
@@ -335,7 +335,7 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
         for (Element childElt : childElts) {
             if (childElt.hasAttribute(PACKAGE)) {
                 String typeHandlerPackage = childElt.getAttribute(NAME);
-                configuration.getTypeHandlerRegistry().register(typeHandlerPackage);
+                TypeHandlerRegistry.register(typeHandlerPackage);
             } else {
                 // todo
                 String javaTypeName = childElt.getAttribute("javaType");
@@ -343,7 +343,7 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
                 String handlerTypeName = childElt.getAttribute("handler");
                 try {
                     Class<?> clazz = ClassUtils.forName(handlerTypeName, this.getClass().getClassLoader());
-                    configuration.getTypeHandlerRegistry().register(clazz);
+                    TypeHandlerRegistry.register(clazz);
                 } catch (ClassNotFoundException e) {
                     parserContext.getReaderContext().error("TypeHandler加载失败", elt, e);
                 }

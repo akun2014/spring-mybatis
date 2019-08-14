@@ -1,4 +1,4 @@
-package com.ownerkaka.springmybatis.config;
+package com.ownerkaka.springmybatis.support;
 
 import org.apache.ibatis.reflection.factory.DefaultObjectFactory;
 

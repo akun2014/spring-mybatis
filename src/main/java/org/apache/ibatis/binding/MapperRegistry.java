@@ -17,7 +17,6 @@ package org.apache.ibatis.binding;
 
 import org.apache.ibatis.builder.annotation.MapperAnnotationBuilder;
 import org.apache.ibatis.io.ResolverUtil;
-import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
 
 import java.util.*;
@@ -29,15 +28,10 @@ import java.util.*;
  */
 public class MapperRegistry {
 
-    private final Configuration config;
-    private final Map<Class<?>, MapperProxyFactory<?>> knownMappers = new HashMap<>();
-
-    public MapperRegistry(Configuration config) {
-        this.config = config;
-    }
+    private static final Map<Class<?>, MapperProxyFactory<?>> knownMappers = new HashMap<>();
 
     @SuppressWarnings("unchecked")
-    public <T> T getMapper(Class<T> type, SqlSession sqlSession) {
+    public static <T> T getMapper(Class<T> type, SqlSession sqlSession) {
         final MapperProxyFactory<T> mapperProxyFactory = (MapperProxyFactory<T>) knownMappers.get(type);
         if (mapperProxyFactory == null) {
             throw new BindingException("Type " + type + " is not known to the MapperRegistry.");
@@ -49,11 +43,11 @@ public class MapperRegistry {
         }
     }
 
-    public <T> boolean hasMapper(Class<T> type) {
+    public static <T> boolean hasMapper(Class<T> type) {
         return knownMappers.containsKey(type);
     }
 
-    public <T> void addMapper(Class<T> type) {
+    public static <T> void addMapper(Class<T> type) {
         if (type.isInterface()) {
             if (hasMapper(type)) {
                 throw new BindingException("Type " + type + " is already known to the MapperRegistry.");
@@ -64,7 +58,8 @@ public class MapperRegistry {
                 // It's important that the type is added before the parser is run
                 // otherwise the binding may automatically be attempted by the
                 // mapper parser. If the type is already known, it won't try.
-                MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type);
+                // todo config
+                MapperAnnotationBuilder parser = new MapperAnnotationBuilder(null, type);
                 parser.parse();
                 loadCompleted = true;
             } finally {
@@ -78,14 +73,14 @@ public class MapperRegistry {
     /**
      * @since 3.2.2
      */
-    public Collection<Class<?>> getMappers() {
+    public static Collection<Class<?>> getMappers() {
         return Collections.unmodifiableCollection(knownMappers.keySet());
     }
 
     /**
      * @since 3.2.2
      */
-    public void addMappers(String packageName, Class<?> superType) {
+    public static void addMappers(String packageName, Class<?> superType) {
         ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<>();
         resolverUtil.find(new ResolverUtil.IsA(superType), packageName);
         Set<Class<? extends Class<?>>> mapperSet = resolverUtil.getClasses();
@@ -97,11 +92,7 @@ public class MapperRegistry {
     /**
      * @since 3.2.2
      */
-    public void addMappers(String packageName) {
+    public static void addMappers(String packageName) {
         addMappers(packageName, Object.class);
-    }
-
-    public Configuration getConfig() {
-        return config;
     }
 }

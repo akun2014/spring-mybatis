@@ -1,5 +1,8 @@
 package com.ownerkaka.springmybatis.config;
 
+import com.ownerkaka.springmybatis.support.OwnerkakaOptions;
+import com.ownerkaka.springmybatis.support.User;
+import com.ownerkaka.springmybatis.support.UserMapper;
 import org.apache.ibatis.datasource.DataSourceFactory;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.reflection.factory.ObjectFactory;
@@ -108,10 +111,7 @@ public class CommonTest {
             }
         });
 
-        Collection<MappedStatement> mappedStatements = configuration.getMapperRegistry().getConfig().getMappedStatements();
-        HashSet<MappedStatement> statementHashSet = new HashSet<>(mappedStatements);
 
-        statementHashSet.forEach(configuration::addMappedStatement);
 
         DefaultSqlSessionFactory sqlSessionFactory = new DefaultSqlSessionFactory(configuration);
         SqlSession sqlSession = sqlSessionFactory.openSession();
@@ -140,11 +140,7 @@ public class CommonTest {
         });
 
 
-        Configuration tempConfig = configuration.getMapperRegistry().getConfig();
-        Collection<MappedStatement> mappedStatements = tempConfig.getMappedStatements();
-        HashSet<MappedStatement> statementHashSet = new HashSet<>(mappedStatements);
-        statementHashSet.forEach(configuration::addMappedStatement);
-        tempConfig.getMapperRegistry().getMappers().forEach(configuration::addMapper);
+
 
         DefaultSqlSessionFactory sqlSessionFactory = new DefaultSqlSessionFactory(configuration);
         SqlSession sqlSession = sqlSessionFactory.openSession();
@@ -178,5 +174,12 @@ public class CommonTest {
         UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
         User user = userMapper.getById(1);
         System.out.println(user.getUid());
+    }
+
+    @Test
+    public void test5() {
+        GenericXmlApplicationContext applicationContext =
+                new GenericXmlApplicationContext("application-mapper.xml");
+        Object test = applicationContext.getBean("test");
     }
 }

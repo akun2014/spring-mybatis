@@ -30,6 +30,8 @@ import org.apache.ibatis.reflection.ReflectorFactory;
 import org.apache.ibatis.reflection.wrapper.ObjectWrapperFactory;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.type.JdbcType;
+import org.apache.ibatis.type.TypeAliasRegistry;
+import org.apache.ibatis.type.TypeHandlerRegistry;
 
 import java.io.InputStream;
 import java.io.Reader;
@@ -128,16 +130,16 @@ public class XMLConfigBuilder extends BaseBuilder {
             for (XNode child : parent.getChildren()) {
                 if ("package".equals(child.getName())) {
                     String typeAliasPackage = child.getStringAttribute("name");
-                    configuration.getTypeAliasRegistry().registerAliases(typeAliasPackage);
+                    TypeAliasRegistry.registerAliases(typeAliasPackage);
                 } else {
                     String alias = child.getStringAttribute("alias");
                     String type = child.getStringAttribute("type");
                     try {
                         Class<?> clazz = Resources.classForName(type);
                         if (alias == null) {
-                            typeAliasRegistry.registerAlias(clazz);
+                            TypeAliasRegistry.registerAlias(clazz);
                         } else {
-                            typeAliasRegistry.registerAlias(alias, clazz);
+                            TypeAliasRegistry.registerAlias(alias, clazz);
                         }
                     } catch (ClassNotFoundException e) {
                         throw new BuilderException("Error registering typeAlias for '" + alias + "'. Cause: " + e, e);
@@ -182,7 +184,7 @@ public class XMLConfigBuilder extends BaseBuilder {
             for (XNode child : parent.getChildren()) {
                 if ("package".equals(child.getName())) {
                     String typeHandlerPackage = child.getStringAttribute("name");
-                    typeHandlerRegistry.register(typeHandlerPackage);
+                    TypeHandlerRegistry.register(typeHandlerPackage);
                 } else {
                     String javaTypeName = child.getStringAttribute("javaType");
                     String jdbcTypeName = child.getStringAttribute("jdbcType");
@@ -192,12 +194,12 @@ public class XMLConfigBuilder extends BaseBuilder {
                     Class<?> typeHandlerClass = resolveClass(handlerTypeName);
                     if (javaTypeClass != null) {
                         if (jdbcType == null) {
-                            typeHandlerRegistry.register(javaTypeClass, typeHandlerClass);
+                            TypeHandlerRegistry.register(javaTypeClass, typeHandlerClass);
                         } else {
-                            typeHandlerRegistry.register(javaTypeClass, jdbcType, typeHandlerClass);
+                            TypeHandlerRegistry.register(javaTypeClass, jdbcType, typeHandlerClass);
                         }
                     } else {
-                        typeHandlerRegistry.register(typeHandlerClass);
+                        TypeHandlerRegistry.register(typeHandlerClass);
                     }
                 }
             }

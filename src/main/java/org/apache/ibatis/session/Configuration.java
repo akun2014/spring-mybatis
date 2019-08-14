@@ -120,11 +120,7 @@ public class Configuration {
      */
     protected Class<?> configurationFactory;
 
-    protected MapperRegistry mapperRegistry = new MapperRegistry(this);
     protected InterceptorChain interceptorChain = new InterceptorChain();
-    protected TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry();
-    protected TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
-    protected LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
 
     protected Map<String, MappedStatement> mappedStatements = new StrictMap<MappedStatement>("Mapped Statements collection")
             .conflictMessageProducer((savedValue, targetValue) ->
@@ -151,30 +147,30 @@ public class Configuration {
     protected final Map<String, String> cacheRefMap = new HashMap<>();
 
     public Configuration() {
-        typeAliasRegistry.registerAlias("PERPETUAL", PerpetualCache.class);
-        typeAliasRegistry.registerAlias("FIFO", FifoCache.class);
-        typeAliasRegistry.registerAlias("LRU", LruCache.class);
-        typeAliasRegistry.registerAlias("SOFT", SoftCache.class);
-        typeAliasRegistry.registerAlias("WEAK", WeakCache.class);
+        TypeAliasRegistry.registerAlias("PERPETUAL", PerpetualCache.class);
+        TypeAliasRegistry.registerAlias("FIFO", FifoCache.class);
+        TypeAliasRegistry.registerAlias("LRU", LruCache.class);
+        TypeAliasRegistry.registerAlias("SOFT", SoftCache.class);
+        TypeAliasRegistry.registerAlias("WEAK", WeakCache.class);
 
-        typeAliasRegistry.registerAlias("DB_VENDOR", VendorDatabaseIdProvider.class);
+        TypeAliasRegistry.registerAlias("DB_VENDOR", VendorDatabaseIdProvider.class);
 
-        typeAliasRegistry.registerAlias("XML", XMLLanguageDriver.class);
-        typeAliasRegistry.registerAlias("RAW", RawLanguageDriver.class);
+        TypeAliasRegistry.registerAlias("XML", XMLLanguageDriver.class);
+        TypeAliasRegistry.registerAlias("RAW", RawLanguageDriver.class);
 
-        typeAliasRegistry.registerAlias("SLF4J", Slf4jImpl.class);
-        typeAliasRegistry.registerAlias("COMMONS_LOGGING", JakartaCommonsLoggingImpl.class);
-        typeAliasRegistry.registerAlias("LOG4J", Log4jImpl.class);
-        typeAliasRegistry.registerAlias("LOG4J2", Log4j2Impl.class);
-        typeAliasRegistry.registerAlias("JDK_LOGGING", Jdk14LoggingImpl.class);
-        typeAliasRegistry.registerAlias("STDOUT_LOGGING", StdOutImpl.class);
-        typeAliasRegistry.registerAlias("NO_LOGGING", NoLoggingImpl.class);
+        TypeAliasRegistry.registerAlias("SLF4J", Slf4jImpl.class);
+        TypeAliasRegistry.registerAlias("COMMONS_LOGGING", JakartaCommonsLoggingImpl.class);
+        TypeAliasRegistry.registerAlias("LOG4J", Log4jImpl.class);
+        TypeAliasRegistry.registerAlias("LOG4J2", Log4j2Impl.class);
+        TypeAliasRegistry.registerAlias("JDK_LOGGING", Jdk14LoggingImpl.class);
+        TypeAliasRegistry.registerAlias("STDOUT_LOGGING", StdOutImpl.class);
+        TypeAliasRegistry.registerAlias("NO_LOGGING", NoLoggingImpl.class);
 
-        typeAliasRegistry.registerAlias("CGLIB", CglibProxyFactory.class);
-        typeAliasRegistry.registerAlias("JAVASSIST", JavassistProxyFactory.class);
+        TypeAliasRegistry.registerAlias("CGLIB", CglibProxyFactory.class);
+        TypeAliasRegistry.registerAlias("JAVASSIST", JavassistProxyFactory.class);
 
-        languageRegistry.setDefaultDriverClass(XMLLanguageDriver.class);
-        languageRegistry.register(RawLanguageDriver.class);
+        LanguageDriverRegistry.setDefaultDriverClass(XMLLanguageDriver.class);
+        LanguageDriverRegistry.register(RawLanguageDriver.class);
     }
 
     public String getLogPrefix() {
@@ -287,9 +283,9 @@ public class Configuration {
         this.environment = environment;
     }
 
-    public void setTypeHandlerRegistry(TypeHandlerRegistry typeHandlerRegistry) {
-        this.typeHandlerRegistry = typeHandlerRegistry;
-    }
+//    public void setTypeHandlerRegistry(TypeHandlerRegistry typeHandlerRegistry) {
+//        this.typeHandlerRegistry = typeHandlerRegistry;
+//    }
 
     public AutoMappingBehavior getAutoMappingBehavior() {
         return autoMappingBehavior;
@@ -434,9 +430,9 @@ public class Configuration {
         this.variables = variables;
     }
 
-    public TypeHandlerRegistry getTypeHandlerRegistry() {
-        return typeHandlerRegistry;
-    }
+//    public TypeHandlerRegistry getTypeHandlerRegistry() {
+//        return typeHandlerRegistry;
+//    }
 
     /**
      * Set a default {@link TypeHandler} class for {@link Enum}.
@@ -447,25 +443,17 @@ public class Configuration {
      */
     public void setDefaultEnumTypeHandler(Class<? extends TypeHandler> typeHandler) {
         if (typeHandler != null) {
-            getTypeHandlerRegistry().setDefaultEnumTypeHandler(typeHandler);
+            TypeHandlerRegistry.setDefaultEnumTypeHandler(typeHandler);
         }
     }
 
-    public TypeAliasRegistry getTypeAliasRegistry() {
-        return typeAliasRegistry;
-    }
-
-    public void setTypeAliasRegistry(TypeAliasRegistry typeAliasRegistry) {
-        this.typeAliasRegistry = typeAliasRegistry;
-    }
 
     /**
      * @since 3.2.2
      */
-    public MapperRegistry getMapperRegistry() {
-        return mapperRegistry;
-    }
-
+//    public MapperRegistry getMapperRegistry() {
+//        return mapperRegistry;
+//    }
     public ReflectorFactory getReflectorFactory() {
         return reflectorFactory;
     }
@@ -497,19 +485,15 @@ public class Configuration {
         return interceptorChain.getInterceptors();
     }
 
-    public LanguageDriverRegistry getLanguageRegistry() {
-        return languageRegistry;
-    }
-
     public void setDefaultScriptingLanguage(Class<? extends LanguageDriver> driver) {
         if (driver == null) {
             driver = XMLLanguageDriver.class;
         }
-        getLanguageRegistry().setDefaultDriverClass(driver);
+        LanguageDriverRegistry.setDefaultDriverClass(driver);
     }
 
     public LanguageDriver getDefaultScriptingLanguageInstance() {
-        return languageRegistry.getDefaultDriver();
+        return LanguageDriverRegistry.getDefaultDriver();
     }
 
     /**
@@ -517,10 +501,10 @@ public class Configuration {
      */
     public LanguageDriver getLanguageDriver(Class<? extends LanguageDriver> langClass) {
         if (langClass == null) {
-            return languageRegistry.getDefaultDriver();
+            return LanguageDriverRegistry.getDefaultDriver();
         }
-        languageRegistry.register(langClass);
-        return languageRegistry.getDriver(langClass);
+        LanguageDriverRegistry.register(langClass);
+        return LanguageDriverRegistry.getDriver(langClass);
     }
 
     /**
@@ -724,23 +708,23 @@ public class Configuration {
     }
 
     public void addMappers(String packageName, Class<?> superType) {
-        mapperRegistry.addMappers(packageName, superType);
+        MapperRegistry.addMappers(packageName, superType);
     }
 
     public void addMappers(String packageName) {
-        mapperRegistry.addMappers(packageName);
+        MapperRegistry.addMappers(packageName);
     }
 
     public <T> void addMapper(Class<T> type) {
-        mapperRegistry.addMapper(type);
+        MapperRegistry.addMapper(type);
     }
 
     public <T> T getMapper(Class<T> type, SqlSession sqlSession) {
-        return mapperRegistry.getMapper(type, sqlSession);
+        return MapperRegistry.getMapper(type, sqlSession);
     }
 
     public boolean hasMapper(Class<?> type) {
-        return mapperRegistry.hasMapper(type);
+        return MapperRegistry.hasMapper(type);
     }
 
     public boolean hasStatement(String statementName) {
@@ -901,6 +885,7 @@ public class Configuration {
         }
 
         @SuppressWarnings("unchecked")
+        @Override
         public V put(String key, V value) {
             if (containsKey(key)) {
                 throw new IllegalArgumentException(name + " already contains value for " + key
@@ -917,6 +902,7 @@ public class Configuration {
             return super.put(key, value);
         }
 
+        @Override
         public V get(Object key) {
             V value = super.get(key);
             if (value == null) {
@@ -955,9 +941,6 @@ public class Configuration {
         this.dataSourceFactory = dataSourceFactory;
     }
 
-    public void setMapperRegistry(MapperRegistry mapperRegistry) {
-        this.mapperRegistry = mapperRegistry;
-    }
 
     public InterceptorChain getInterceptorChain() {
         return interceptorChain;
@@ -967,9 +950,6 @@ public class Configuration {
         this.interceptorChain = interceptorChain;
     }
 
-    public void setLanguageRegistry(LanguageDriverRegistry languageRegistry) {
-        this.languageRegistry = languageRegistry;
-    }
 
     public void setMappedStatements(Map<String, MappedStatement> mappedStatements) {
         this.mappedStatements = mappedStatements;

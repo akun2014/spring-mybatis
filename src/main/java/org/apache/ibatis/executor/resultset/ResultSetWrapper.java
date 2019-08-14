@@ -41,7 +41,7 @@ import org.apache.ibatis.type.UnknownTypeHandler;
 public class ResultSetWrapper {
 
   private final ResultSet resultSet;
-  private final TypeHandlerRegistry typeHandlerRegistry;
+//  private final TypeHandlerRegistry TypeHandlerRegistry;
   private final List<String> columnNames = new ArrayList<>();
   private final List<String> classNames = new ArrayList<>();
   private final List<JdbcType> jdbcTypes = new ArrayList<>();
@@ -51,7 +51,7 @@ public class ResultSetWrapper {
 
   public ResultSetWrapper(ResultSet rs, Configuration configuration) throws SQLException {
     super();
-    this.typeHandlerRegistry = configuration.getTypeHandlerRegistry();
+//    this.TypeHandlerRegistry = configuration.getTypeHandlerRegistry();
     this.resultSet = rs;
     final ResultSetMetaData metaData = rs.getMetaData();
     final int columnCount = metaData.getColumnCount();
@@ -107,18 +107,18 @@ public class ResultSetWrapper {
     }
     if (handler == null) {
       JdbcType jdbcType = getJdbcType(columnName);
-      handler = typeHandlerRegistry.getTypeHandler(propertyType, jdbcType);
+      handler = TypeHandlerRegistry.getTypeHandler(propertyType, jdbcType);
       // Replicate logic of UnknownTypeHandler#resolveTypeHandler
       // See issue #59 comment 10
       if (handler == null || handler instanceof UnknownTypeHandler) {
         final int index = columnNames.indexOf(columnName);
         final Class<?> javaType = resolveClass(classNames.get(index));
         if (javaType != null && jdbcType != null) {
-          handler = typeHandlerRegistry.getTypeHandler(javaType, jdbcType);
+          handler = TypeHandlerRegistry.getTypeHandler(javaType, jdbcType);
         } else if (javaType != null) {
-          handler = typeHandlerRegistry.getTypeHandler(javaType);
+          handler = TypeHandlerRegistry.getTypeHandler(javaType);
         } else if (jdbcType != null) {
-          handler = typeHandlerRegistry.getTypeHandler(jdbcType);
+          handler = TypeHandlerRegistry.getTypeHandler(jdbcType);
         }
       }
       if (handler == null || handler instanceof UnknownTypeHandler) {

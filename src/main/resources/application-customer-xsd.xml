@@ -2,8 +2,11 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:mybatis="http://mybatis.org/schema/mybatis-config"
+       xmlns:mybatis-mapper="http://mybatis.org/schema/mybatis-mapper"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
        http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://mybatis.org/schema/mybatis-mapper
+http://mybatis.org/schema/mybatis-mapper.xsd
 http://mybatis.org/schema/mybatis-config
 http://mybatis.org/schema/mybatis-config.xsd"
 
@@ -39,18 +42,18 @@ http://mybatis.org/schema/mybatis-config.xsd"
         <mybatis:typeAliases>
             <mybatis:typeAlias alias="spring-tx"
                                type="org.mybatis.spring.transaction.SpringManagedTransactionFactory"/>
-            <mybatis:typeAlias alias="User" type="com.ownerkaka.springmybatis.config.User"/>
+            <mybatis:typeAlias alias="User" type="com.ownerkaka.springmybatis.support.User"/>
             <mybatis:package name="com.ownerkaka.testjdk.mybatis.domain"/>
         </mybatis:typeAliases>
 
         <mybatis:typeHandlers>
-            <mybatis:typeHandler handler="com.ownerkaka.springmybatis.config.MyTypeHandler"/>
+            <mybatis:typeHandler handler="com.ownerkaka.springmybatis.support.MyTypeHandler"/>
             <!--<mybatis:package name="com.ownerkaka.testjdk.mybatis.typehandler"/>-->
         </mybatis:typeHandlers>
-        <mybatis:objectFactory type="com.ownerkaka.springmybatis.config.ExampleObjectFactory"/>
+        <mybatis:objectFactory type="com.ownerkaka.springmybatis.support.ExampleObjectFactory"/>
 
         <mybatis:plugins>
-            <mybatis:plugin interceptor="com.ownerkaka.springmybatis.config.MyPlugin">
+            <mybatis:plugin interceptor="com.ownerkaka.springmybatis.support.MyPlugin">
                 <mybatis:property name="pluginKey" value="pluginValue"/>
             </mybatis:plugin>
         </mybatis:plugins>
@@ -70,14 +73,9 @@ http://mybatis.org/schema/mybatis-config.xsd"
         <mybatis:mappers>
             <mybatis:mapper resource="OptionsMapper.xml"/>
             <mybatis:mapper resource="UserMapper.xml"/>
+            <mybatis:package name="com.tet"/>
         </mybatis:mappers>
     </mybatis:configuration>
-
-    <import resource="application-customer-xsd.xml"/>
-
-    <!--<mybatis-mapper:mapper namespace="test">-->
-    <!--<mybatis-mapper:select id="test"/>-->
-    <!--</mybatis-mapper:mapper>-->
 
     <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" destroy-method="close" init-method="init">
         <property name="url" value="${spring.datasource.url}"/>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mybatis-mapper="http://mybatis.org/schema/mybatis-mapper"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://mybatis.org/schema/mybatis-mapper
+http://mybatis.org/schema/mybatis-mapper.xsd"
+>
+    <!--<import resource="OptionsMapper.xml"/>-->
+
+    <mybatis-mapper:mapper namespace="options">
+        <mybatis-mapper:cache/>
+        <mybatis-mapper:cache-ref namespace="test"/>
+
+        <mybatis-mapper:parameterMap id="test" type="test">
+            <mybatis-mapper:parameter property="test" typeHandler="test" scale=""/>
+        </mybatis-mapper:parameterMap>
+
+        <mybatis-mapper:resultMap id="test" type="test" autoMapping="false" extends="test">
+            <mybatis-mapper:association property=""/>
+            <mybatis-mapper:collection property=""/>
+        </mybatis-mapper:resultMap>
+
+
+        <mybatis-mapper:select id="selectOne" resultType="com.ownerkaka.springmybatis.support.OwnerkakaOptions">
+            select *
+            from ownerkaka_options
+            where fieldName = 'name'
+        </mybatis-mapper:select>
+
+        <mybatis-mapper:update id="updateOne">
+            update ownerkaka_options
+            set `fieldVale` = #{value}
+            where `fieldName` = 'name'
+        </mybatis-mapper:update>
+    </mybatis-mapper:mapper>
+
+
+</beans>

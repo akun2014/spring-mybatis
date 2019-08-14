@@ -2,7 +2,7 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.ownerkaka.springmybatis.config.UserMapper">
+<mapper namespace="com.ownerkaka.springmybatis.support.UserMapper">
 
     <!--<cache-ref namespace="redisCache"/>-->
     <!--<cache/>-->
@@ -17,7 +17,7 @@
         where uid = #{id}
     </select>
 
-    <select id="getByUsername" resultType="com.ownerkaka.springmybatis.config.User">
+    <select id="getByUsername" resultType="com.ownerkaka.springmybatis.support.User">
         select *
         from ownerkaka_user
         where username = #{username}

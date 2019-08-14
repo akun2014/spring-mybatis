@@ -1,4 +1,4 @@
-package com.ownerkaka.springmybatis.config;
+package com.ownerkaka.springmybatis.support;
 
 import lombok.Getter;
 import lombok.Setter;

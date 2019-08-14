@@ -9,5 +9,6 @@ public class MybatisNamespaceHandler extends NamespaceHandlerSupport {
     @Override
     public void init() {
         registerBeanDefinitionParser("configuration", new MybatisBeanDefinitionParser());
+//        registerBeanDefinitionParser("mapper", new MapperBeanDefinitionParser());
     }
 }

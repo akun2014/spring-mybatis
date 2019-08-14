@@ -28,7 +28,7 @@ import java.util.*;
  */
 public class TypeAliasRegistry {
 
-    private final Map<String, Class<?>> typeAliases = new HashMap<>();
+    private static final Map<String, Class<?>> typeAliases = new HashMap<>();
 
     public TypeAliasRegistry() {
         registerAlias("string", String.class);
@@ -93,7 +93,7 @@ public class TypeAliasRegistry {
 
     @SuppressWarnings("unchecked")
     // throws class cast exception as well if types cannot be assigned
-    public <T> Class<T> resolveAlias(String string) {
+    public static <T> Class<T> resolveAlias(String string) {
         try {
             if (string == null) {
                 return null;
@@ -112,11 +112,11 @@ public class TypeAliasRegistry {
         }
     }
 
-    public void registerAliases(String packageName) {
+    public static void registerAliases(String packageName) {
         registerAliases(packageName, Object.class);
     }
 
-    public void registerAliases(String packageName, Class<?> superType) {
+    public static void registerAliases(String packageName, Class<?> superType) {
         ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<>();
         resolverUtil.find(new ResolverUtil.IsA(superType), packageName);
         Set<Class<? extends Class<?>>> typeSet = resolverUtil.getClasses();
@@ -129,7 +129,7 @@ public class TypeAliasRegistry {
         }
     }
 
-    public void registerAlias(Class<?> type) {
+    public static void registerAlias(Class<?> type) {
         String alias = type.getSimpleName();
         Alias aliasAnnotation = type.getAnnotation(Alias.class);
         if (aliasAnnotation != null) {
@@ -138,7 +138,7 @@ public class TypeAliasRegistry {
         registerAlias(alias, type);
     }
 
-    public void registerAlias(String alias, Class<?> value) {
+    public static void registerAlias(String alias, Class<?> value) {
         if (alias == null) {
             throw new TypeException("The parameter alias cannot be null");
         }
