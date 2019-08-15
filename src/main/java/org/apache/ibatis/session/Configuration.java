@@ -15,6 +15,8 @@
  */
 package org.apache.ibatis.session;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.ibatis.binding.MapperRegistry;
 import org.apache.ibatis.builder.CacheRefResolver;
 import org.apache.ibatis.builder.IncompleteElementException;
@@ -75,6 +77,8 @@ import java.util.function.BiFunction;
 /**
  * @author Clinton Begin
  */
+@Getter
+@Setter
 public class Configuration {
 
     protected Environment environment;
@@ -103,7 +107,7 @@ public class Configuration {
     protected AutoMappingBehavior autoMappingBehavior = AutoMappingBehavior.PARTIAL;
     protected AutoMappingUnknownColumnBehavior autoMappingUnknownColumnBehavior = AutoMappingUnknownColumnBehavior.NONE;
 
-    protected Properties variables = new Properties();
+    protected static Properties variables = new Properties();
     protected ReflectorFactory reflectorFactory = new DefaultReflectorFactory();
     protected ObjectFactory objectFactory = new DefaultObjectFactory();
     protected ObjectWrapperFactory objectWrapperFactory = new DefaultObjectWrapperFactory();
@@ -126,11 +130,11 @@ public class Configuration {
             .conflictMessageProducer((savedValue, targetValue) ->
                     ". please check " + savedValue.getResource() + " and " + targetValue.getResource());
     protected final Map<String, Cache> caches = new StrictMap<>("Caches collection");
-    protected final Map<String, ResultMap> resultMaps = new StrictMap<>("Result Maps collection");
+    protected static final Map<String, ResultMap> resultMaps = new StrictMap<>("Result Maps collection");
     protected final Map<String, ParameterMap> parameterMaps = new StrictMap<>("Parameter Maps collection");
     protected final Map<String, KeyGenerator> keyGenerators = new StrictMap<>("Key Generators collection");
 
-    protected final Set<String> loadedResources = new HashSet<>();
+    protected static final Set<String> loadedResources = new HashSet<>();
     protected final Map<String, XNode> sqlFragments = new StrictMap<>("XML fragments parsed from previous mappers");
 
     protected final Collection<XMLStatementBuilder> incompleteStatements = new LinkedList<>();
@@ -173,6 +177,14 @@ public class Configuration {
         LanguageDriverRegistry.register(RawLanguageDriver.class);
     }
 
+    public static Properties getVariables() {
+        return variables;
+    }
+
+    public void setVariables(Properties properties) {
+        Configuration.variables = properties;
+    }
+
     public String getLogPrefix() {
         return logPrefix;
     }
@@ -203,75 +215,12 @@ public class Configuration {
         }
     }
 
-    public boolean isCallSettersOnNulls() {
-        return callSettersOnNulls;
-    }
 
-    public void setCallSettersOnNulls(boolean callSettersOnNulls) {
-        this.callSettersOnNulls = callSettersOnNulls;
-    }
-
-    public boolean isUseActualParamName() {
-        return useActualParamName;
-    }
-
-    public void setUseActualParamName(boolean useActualParamName) {
-        this.useActualParamName = useActualParamName;
-    }
-
-    public boolean isReturnInstanceForEmptyRow() {
-        return returnInstanceForEmptyRow;
-    }
-
-    public void setReturnInstanceForEmptyRow(boolean returnEmptyInstance) {
-        this.returnInstanceForEmptyRow = returnEmptyInstance;
-    }
-
-    public String getDatabaseId() {
-        return databaseId;
-    }
-
-    public void setDatabaseId(String databaseId) {
-        this.databaseId = databaseId;
-    }
-
-    public Class<?> getConfigurationFactory() {
-        return configurationFactory;
-    }
-
-    public void setConfigurationFactory(Class<?> configurationFactory) {
-        this.configurationFactory = configurationFactory;
-    }
-
-    public boolean isSafeResultHandlerEnabled() {
-        return safeResultHandlerEnabled;
-    }
-
-    public void setSafeResultHandlerEnabled(boolean safeResultHandlerEnabled) {
-        this.safeResultHandlerEnabled = safeResultHandlerEnabled;
-    }
-
-    public boolean isSafeRowBoundsEnabled() {
-        return safeRowBoundsEnabled;
-    }
-
-    public void setSafeRowBoundsEnabled(boolean safeRowBoundsEnabled) {
-        this.safeRowBoundsEnabled = safeRowBoundsEnabled;
-    }
-
-    public boolean isMapUnderscoreToCamelCase() {
-        return mapUnderscoreToCamelCase;
-    }
-
-    public void setMapUnderscoreToCamelCase(boolean mapUnderscoreToCamelCase) {
-        this.mapUnderscoreToCamelCase = mapUnderscoreToCamelCase;
-    }
-
-    public void addLoadedResource(String resource) {
+    public static void addLoadedResource(String resource) {
         loadedResources.add(resource);
     }
 
-    public boolean isResourceLoaded(String resource) {
+    public static boolean isResourceLoaded(String resource) {
         return loadedResources.contains(resource);
     }
 
@@ -283,42 +232,8 @@ public class Configuration {
         this.environment = environment;
     }
 
-//    public void setTypeHandlerRegistry(TypeHandlerRegistry typeHandlerRegistry) {
-//        this.typeHandlerRegistry = typeHandlerRegistry;
-//    }
-
     public AutoMappingBehavior getAutoMappingBehavior() {
         return autoMappingBehavior;
-    }
-
-    public void setAutoMappingBehavior(AutoMappingBehavior autoMappingBehavior) {
-        this.autoMappingBehavior = autoMappingBehavior;
-    }
-
-    /**
-     * @since 3.4.0
-     */
-    public AutoMappingUnknownColumnBehavior getAutoMappingUnknownColumnBehavior() {
-        return autoMappingUnknownColumnBehavior;
-    }
-
-    /**
-     * @since 3.4.0
-     */
-    public void setAutoMappingUnknownColumnBehavior(AutoMappingUnknownColumnBehavior autoMappingUnknownColumnBehavior) {
-        this.autoMappingUnknownColumnBehavior = autoMappingUnknownColumnBehavior;
-    }
-
-    public boolean isLazyLoadingEnabled() {
-        return lazyLoadingEnabled;
-    }
-
-    public void setLazyLoadingEnabled(boolean lazyLoadingEnabled) {
-        this.lazyLoadingEnabled = lazyLoadingEnabled;
-    }
-
-    public ProxyFactory getProxyFactory() {
-        return proxyFactory;
     }
 
     public void setProxyFactory(ProxyFactory proxyFactory) {
@@ -327,112 +242,6 @@ public class Configuration {
         }
         this.proxyFactory = proxyFactory;
     }
-
-    public boolean isAggressiveLazyLoading() {
-        return aggressiveLazyLoading;
-    }
-
-    public void setAggressiveLazyLoading(boolean aggressiveLazyLoading) {
-        this.aggressiveLazyLoading = aggressiveLazyLoading;
-    }
-
-    public boolean isMultipleResultSetsEnabled() {
-        return multipleResultSetsEnabled;
-    }
-
-    public void setMultipleResultSetsEnabled(boolean multipleResultSetsEnabled) {
-        this.multipleResultSetsEnabled = multipleResultSetsEnabled;
-    }
-
-    public Set<String> getLazyLoadTriggerMethods() {
-        return lazyLoadTriggerMethods;
-    }
-
-    public void setLazyLoadTriggerMethods(Set<String> lazyLoadTriggerMethods) {
-        this.lazyLoadTriggerMethods = lazyLoadTriggerMethods;
-    }
-
-    public boolean isUseGeneratedKeys() {
-        return useGeneratedKeys;
-    }
-
-    public void setUseGeneratedKeys(boolean useGeneratedKeys) {
-        this.useGeneratedKeys = useGeneratedKeys;
-    }
-
-    public ExecutorType getDefaultExecutorType() {
-        return defaultExecutorType;
-    }
-
-    public void setDefaultExecutorType(ExecutorType defaultExecutorType) {
-        this.defaultExecutorType = defaultExecutorType;
-    }
-
-    public boolean isCacheEnabled() {
-        return cacheEnabled;
-    }
-
-    public void setCacheEnabled(boolean cacheEnabled) {
-        this.cacheEnabled = cacheEnabled;
-    }
-
-    public Integer getDefaultStatementTimeout() {
-        return defaultStatementTimeout;
-    }
-
-    public void setDefaultStatementTimeout(Integer defaultStatementTimeout) {
-        this.defaultStatementTimeout = defaultStatementTimeout;
-    }
-
-    /**
-     * @since 3.3.0
-     */
-    public Integer getDefaultFetchSize() {
-        return defaultFetchSize;
-    }
-
-    /**
-     * @since 3.3.0
-     */
-    public void setDefaultFetchSize(Integer defaultFetchSize) {
-        this.defaultFetchSize = defaultFetchSize;
-    }
-
-    public boolean isUseColumnLabel() {
-        return useColumnLabel;
-    }
-
-    public void setUseColumnLabel(boolean useColumnLabel) {
-        this.useColumnLabel = useColumnLabel;
-    }
-
-    public LocalCacheScope getLocalCacheScope() {
-        return localCacheScope;
-    }
-
-    public void setLocalCacheScope(LocalCacheScope localCacheScope) {
-        this.localCacheScope = localCacheScope;
-    }
-
-    public JdbcType getJdbcTypeForNull() {
-        return jdbcTypeForNull;
-    }
-
-    public void setJdbcTypeForNull(JdbcType jdbcTypeForNull) {
-        this.jdbcTypeForNull = jdbcTypeForNull;
-    }
-
-    public Properties getVariables() {
-        return variables;
-    }
-
-    public void setVariables(Properties variables) {
-        this.variables = variables;
-    }
-
-//    public TypeHandlerRegistry getTypeHandlerRegistry() {
-//        return typeHandlerRegistry;
-//    }
 
     /**
      * Set a default {@link TypeHandler} class for {@link Enum}.
@@ -447,36 +256,6 @@ public class Configuration {
         }
     }
 
-
-    /**
-     * @since 3.2.2
-     */
-//    public MapperRegistry getMapperRegistry() {
-//        return mapperRegistry;
-//    }
-    public ReflectorFactory getReflectorFactory() {
-        return reflectorFactory;
-    }
-
-    public void setReflectorFactory(ReflectorFactory reflectorFactory) {
-        this.reflectorFactory = reflectorFactory;
-    }
-
-    public ObjectFactory getObjectFactory() {
-        return objectFactory;
-    }
-
-    public void setObjectFactory(ObjectFactory objectFactory) {
-        this.objectFactory = objectFactory;
-    }
-
-    public ObjectWrapperFactory getObjectWrapperFactory() {
-        return objectWrapperFactory;
-    }
-
-    public void setObjectWrapperFactory(ObjectWrapperFactory objectWrapperFactory) {
-        this.objectWrapperFactory = objectWrapperFactory;
-    }
 
     /**
      * @since 3.2.2
@@ -499,7 +278,7 @@ public class Configuration {
     /**
      * @since 3.5.1
      */
-    public LanguageDriver getLanguageDriver(Class<? extends LanguageDriver> langClass) {
+    public static LanguageDriver getLanguageDriver(Class<? extends LanguageDriver> langClass) {
         if (langClass == null) {
             return LanguageDriverRegistry.getDefaultDriver();
         }
@@ -600,7 +379,7 @@ public class Configuration {
         return caches.containsKey(id);
     }
 
-    public void addResultMap(ResultMap rm) {
+    public static void addResultMap(ResultMap rm) {
         resultMaps.put(rm.getId(), rm);
         checkLocallyForDiscriminatedNestedResultMaps(rm);
         checkGloballyForDiscriminatedNestedResultMaps(rm);
@@ -614,11 +393,11 @@ public class Configuration {
         return resultMaps.values();
     }
 
-    public ResultMap getResultMap(String id) {
+    public static ResultMap getResultMap(String id) {
         return resultMaps.get(id);
     }
 
-    public boolean hasResultMap(String id) {
+    public static boolean hasResultMap(String id) {
         return resultMaps.containsKey(id);
     }
 
@@ -811,7 +590,7 @@ public class Configuration {
     }
 
     // Slow but a one time cost. A better solution is welcome.
-    protected void checkGloballyForDiscriminatedNestedResultMaps(ResultMap rm) {
+    protected static void checkGloballyForDiscriminatedNestedResultMaps(ResultMap rm) {
         if (rm.hasNestedResultMaps()) {
             for (Map.Entry<String, ResultMap> entry : resultMaps.entrySet()) {
                 Object value = entry.getValue();
@@ -829,7 +608,7 @@ public class Configuration {
     }
 
     // Slow but a one time cost. A better solution is welcome.
-    protected void checkLocallyForDiscriminatedNestedResultMaps(ResultMap rm) {
+    protected static void checkLocallyForDiscriminatedNestedResultMaps(ResultMap rm) {
         if (!rm.hasNestedResultMaps() && rm.getDiscriminator() != null) {
             for (Map.Entry<String, String> entry : rm.getDiscriminator().getDiscriminatorMap().entrySet()) {
                 String discriminatedResultMapName = entry.getValue();
@@ -933,33 +712,4 @@ public class Configuration {
         }
     }
 
-    public DataSourceFactory getDataSourceFactory() {
-        return this.dataSourceFactory;
-    }
-
-    public void setDataSourceFactory(DataSourceFactory dataSourceFactory) {
-        this.dataSourceFactory = dataSourceFactory;
-    }
-
-
-    public InterceptorChain getInterceptorChain() {
-        return interceptorChain;
-    }
-
-    public void setInterceptorChain(InterceptorChain interceptorChain) {
-        this.interceptorChain = interceptorChain;
-    }
-
-
-    public void setMappedStatements(Map<String, MappedStatement> mappedStatements) {
-        this.mappedStatements = mappedStatements;
-    }
-
-    public Set<String> getLoadedResources() {
-        return loadedResources;
-    }
-
-    public Map<String, String> getCacheRefMap() {
-        return cacheRefMap;
-    }
 }

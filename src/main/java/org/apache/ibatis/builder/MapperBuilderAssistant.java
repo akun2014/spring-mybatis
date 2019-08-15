@@ -187,7 +187,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
         ResultMap resultMap = new ResultMap.Builder(configuration, id, type, resultMappings, autoMapping)
                 .discriminator(discriminator)
                 .build();
-        configuration.addResultMap(resultMap);
+        Configuration.addResultMap(resultMap);
         return resultMap;
     }
 

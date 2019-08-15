@@ -59,7 +59,6 @@ public class XMLConfigBuilder extends BaseBuilder {
     private XMLConfigBuilder(XPathParser parser, String environment, Properties props) {
         super(new Configuration());
         ErrorContext.instance().resource("SQL Mapper Configuration");
-        this.configuration.setVariables(props);
         this.parsed = false;
         this.parser = parser;
     }

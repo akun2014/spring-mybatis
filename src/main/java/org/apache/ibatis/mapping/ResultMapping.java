@@ -15,6 +15,7 @@
  */
 package org.apache.ibatis.mapping;
 
+import lombok.Getter;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
@@ -28,9 +29,9 @@ import java.util.Set;
 /**
  * @author Clinton Begin
  */
+@Getter
 public class ResultMapping {
 
-    private Configuration configuration;
     private String property;
     private String column;
     private Class<?> javaType;
@@ -65,7 +66,6 @@ public class ResultMapping {
         }
 
         public Builder(Configuration configuration, String property) {
-            resultMapping.configuration = configuration;
             resultMapping.property = property;
             resultMapping.flags = new ArrayList<>();
             resultMapping.composites = new ArrayList<>();
@@ -181,72 +181,9 @@ public class ResultMapping {
         }
     }
 
-    public String getProperty() {
-        return property;
-    }
-
-    public String getColumn() {
-        return column;
-    }
-
-    public Class<?> getJavaType() {
-        return javaType;
-    }
-
-    public JdbcType getJdbcType() {
-        return jdbcType;
-    }
-
-    public TypeHandler<?> getTypeHandler() {
-        return typeHandler;
-    }
-
-    public String getNestedResultMapId() {
-        return nestedResultMapId;
-    }
-
-    public String getNestedQueryId() {
-        return nestedQueryId;
-    }
-
-    public Set<String> getNotNullColumns() {
-        return notNullColumns;
-    }
-
-    public String getColumnPrefix() {
-        return columnPrefix;
-    }
-
-    public List<ResultFlag> getFlags() {
-        return flags;
-    }
-
-    public List<ResultMapping> getComposites() {
-        return composites;
-    }
 
     public boolean isCompositeResult() {
         return this.composites != null && !this.composites.isEmpty();
-    }
-
-    public String getResultSet() {
-        return this.resultSet;
-    }
-
-    public String getForeignColumn() {
-        return foreignColumn;
-    }
-
-    public void setForeignColumn(String foreignColumn) {
-        this.foreignColumn = foreignColumn;
-    }
-
-    public boolean isLazy() {
-        return lazy;
-    }
-
-    public void setLazy(boolean lazy) {
-        this.lazy = lazy;
     }
 
     @Override

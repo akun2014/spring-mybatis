@@ -15,6 +15,7 @@
  */
 package org.apache.ibatis.mapping;
 
+import lombok.Getter;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
@@ -25,9 +26,8 @@ import java.sql.ResultSet;
 /**
  * @author Clinton Begin
  */
+@Getter
 public class ParameterMapping {
-
-    private Configuration configuration;
 
     private String property;
     private ParameterMode mode;
@@ -46,14 +46,12 @@ public class ParameterMapping {
         private ParameterMapping parameterMapping = new ParameterMapping();
 
         public Builder(Configuration configuration, String property, TypeHandler<?> typeHandler) {
-            parameterMapping.configuration = configuration;
             parameterMapping.property = property;
             parameterMapping.typeHandler = typeHandler;
             parameterMapping.mode = ParameterMode.IN;
         }
 
         public Builder(Configuration configuration, String property, Class<?> javaType) {
-            parameterMapping.configuration = configuration;
             parameterMapping.property = property;
             parameterMapping.javaType = javaType;
             parameterMapping.mode = ParameterMode.IN;
@@ -127,82 +125,6 @@ public class ParameterMapping {
             }
         }
 
-    }
-
-    public String getProperty() {
-        return property;
-    }
-
-    /**
-     * Used for handling output of callable statements.
-     *
-     * @return
-     */
-    public ParameterMode getMode() {
-        return mode;
-    }
-
-    /**
-     * Used for handling output of callable statements.
-     *
-     * @return
-     */
-    public Class<?> getJavaType() {
-        return javaType;
-    }
-
-    /**
-     * Used in the UnknownTypeHandler in case there is no handler for the property type.
-     *
-     * @return
-     */
-    public JdbcType getJdbcType() {
-        return jdbcType;
-    }
-
-    /**
-     * Used for handling output of callable statements.
-     *
-     * @return
-     */
-    public Integer getNumericScale() {
-        return numericScale;
-    }
-
-    /**
-     * Used when setting parameters to the PreparedStatement.
-     *
-     * @return
-     */
-    public TypeHandler<?> getTypeHandler() {
-        return typeHandler;
-    }
-
-    /**
-     * Used for handling output of callable statements.
-     *
-     * @return
-     */
-    public String getResultMapId() {
-        return resultMapId;
-    }
-
-    /**
-     * Used for handling output of callable statements.
-     *
-     * @return
-     */
-    public String getJdbcTypeName() {
-        return jdbcTypeName;
-    }
-
-    /**
-     * Not used
-     *
-     * @return
-     */
-    public String getExpression() {
-        return expression;
     }
 
     @Override

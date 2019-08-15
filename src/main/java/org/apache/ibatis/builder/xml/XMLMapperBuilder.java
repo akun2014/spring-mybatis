@@ -15,6 +15,7 @@
  */
 package org.apache.ibatis.builder.xml;
 
+import org.apache.ibatis.binding.MapperRegistry;
 import org.apache.ibatis.builder.*;
 import org.apache.ibatis.cache.Cache;
 import org.apache.ibatis.executor.ErrorContext;
@@ -75,7 +76,7 @@ public class XMLMapperBuilder extends BaseBuilder {
 
     public void parse() {
         configurationElement(parser.evalNode("/mapper"));
-        configuration.addLoadedResource(resource);
+        Configuration.addLoadedResource(resource);
         bindMapperForNamespace();
 
         parsePendingResultMaps();
@@ -410,12 +411,12 @@ public class XMLMapperBuilder extends BaseBuilder {
                 //ignore, bound type is not required
             }
             if (boundType != null) {
-                if (!configuration.hasMapper(boundType)) {
+                if (!MapperRegistry.hasMapper(boundType)) {
                     // Spring may not know the real resource name so we set a flag
                     // to prevent loading again this resource from the mapper interface
                     // look at MapperAnnotationBuilder#loadXmlResource
-                    configuration.addLoadedResource("namespace:" + namespace);
-                    configuration.addMapper(boundType);
+                    Configuration.addLoadedResource("namespace:" + namespace);
+                    MapperRegistry.addMapper(boundType);
                 }
             }
         }

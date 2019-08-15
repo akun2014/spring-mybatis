@@ -92,7 +92,7 @@ public class MybatisBeanDefinitionParser implements BeanDefinitionParser {
             } else if (DATABASEID_PROVIDER.equals(localName)) {
                 parseDatabaseIdProviderElement(elt, parserContext, builder);
             } else if (MAPPERS.equals(localName)) {
-//                parseMappers(elt, parserContext, builder);
+                parseMappers(elt, parserContext, builder);
             }
         }
         return null;

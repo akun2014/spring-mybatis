@@ -33,11 +33,9 @@ import java.util.regex.Pattern;
  */
 public abstract class BaseBuilder {
     protected final Configuration configuration;
-//    protected final TypeHandlerRegistry typeHandlerRegistry;
 
     public BaseBuilder(Configuration configuration) {
         this.configuration = configuration;
-//        this.typeHandlerRegistry = this.configuration.getTypeHandlerRegistry();
     }
 
     public Configuration getConfiguration() {
